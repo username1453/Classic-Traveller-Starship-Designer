@@ -66,6 +66,34 @@
             border-radius: 8px; /* Rounded corners */
         }
 
+        /* --- JSON Area Styling --- */
+        .json-input-section, .json-output-section {
+            background-color: #2d3748; /* bg-gray-800 */
+            color: #f7fafc; /* text-gray-100 */
+            border: 1px solid #1a202c; /* darker border */
+        }
+
+        .json-input-section h2, .json-output-section h2 {
+            color: #f7fafc; /* text-gray-100 */
+        }
+
+        .json-input-section textarea, .json-output-section textarea {
+            background-color: #1a202c; /* bg-gray-900 */
+            color: #68d391; /* text-green-400 */
+            border: 1px solid #4a5568; /* slightly lighter border for textarea */
+            caret-color: #68d391; /* Green cursor */
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9em;
+            width: calc(100% - 20px);
+            height: 150px;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 5px;
+            resize: vertical;
+        }
+        /* --- End JSON Area Styling --- */
+
+
         .packages label, .program-item label {
             display: flex;
             align-items: center;
@@ -102,18 +130,6 @@
         .program-item span {
             font-weight: 500;
             color: #555;
-        }
-
-        textarea {
-            width: calc(100% - 20px);
-            height: 150px;
-            padding: 10px;
-            margin-top: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            font-family: 'Consolas', 'Monaco', monospace;
-            font-size: 0.9em;
-            resize: vertical;
         }
 
         .json-input-section button {
