@@ -13,8 +13,17 @@
 </head>
 <body class="bg-gray-100 p-8 antialiased">
 
-  <!-- The root div for the React application -->
-  <div id="root"></div>
+  <div class="relative container mx-auto">
+    <!-- Link to Advanced Ship Statistics -->
+    <div class="absolute top-0 right-0 mt-4 mr-4">
+      <a href="advanced_statistics.html" class="text-indigo-600 hover:text-indigo-800 font-semibold text-lg">
+        Open Advanced Ship Statistics
+      </a>
+    </div>
+
+    <!-- The root div for the React application -->
+    <div id="root"></div>
+  </div>
 
   <!-- React and ReactDOM CDN scripts -->
   <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
@@ -23,8 +32,7 @@
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
   <!-- Link to the external React component file -->
-  <script type="text/babel" src="app.jsx"></script>
+  <script type="text/babel" src="App.jsx"></script>
 
 </body>
 </html>
-
