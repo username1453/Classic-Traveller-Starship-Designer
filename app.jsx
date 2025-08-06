@@ -1,5 +1,6 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
+// No longer need to import React or ReactDOM here, as they are loaded globally via CDN in index.html
+// import React from 'react';
+// import ReactDOM from 'react-dom/client';
 
 const shipDatabase = {
   "drives": {
