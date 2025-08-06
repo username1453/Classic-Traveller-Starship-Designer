@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ship Program Selector</title>
+    <style>
+        /* CSS styles for the webpage */
+        body {
+            font-family: 'Inter', sans-serif; /* Using Inter font */
+            background-color: #f0f2f5;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+            margin: 20px auto;
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 12px; /* Rounded corners */
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e0e0e0;
+            box-sizing: border-box;
+        }
+
+        h1, h2 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 25px;
+            font-weight: 600;
+        }
+
+        .capacity-info {
+            background-color: #e8f0fe;
+            border: 1px solid #a7c7ed;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-radius: 8px; /* Rounded corners */
+            text-align: center;
+            font-size: 1.1em;
+            color: #1a5276;
+        }
+
+        .capacity-info p {
+            margin: 8px 0;
+        }
+
+        .capacity-info span {
+            font-weight: bold;
+            color: #0056b3;
+        }
+
+        .packages, .program-list-container, .json-input-section, .json-output-section {
+            background-color: #f9f9f9;
+            border: 1px solid #e0e0e0;
+            padding: 20px;
+            margin-bottom: 25px;
+            border-radius: 8px; /* Rounded corners */
+        }
+
+        .packages label, .program-item label {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            font-size: 1em;
+            cursor: pointer;
+            padding: 5px 0;
+            border-radius: 4px;
+            transition: background-color 0.2s ease;
+        }
+
+        .packages label:hover, .program-item label:hover {
+            background-color: #f0f0f0;
+        }
+
+        .packages input[type="checkbox"], .program-item input[type="checkbox"] {
+            margin-right: 10px;
+            transform: scale(1.2); /* Make checkboxes a bit larger */
+            accent-color: #007bff; /* Highlight color for checkboxes */
+        }
+
+        .program-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px dashed #e0e0e0;
+        }
+
+        .program-item:last-child {
+            border-bottom: none;
+        }
+
+        .program-item span {
+            font-weight: 500;
+            color: #555;
+        }
+
+        textarea {
+            width: calc(100% - 20px);
+            height: 150px;
+            padding: 10px;
+            margin-top: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9em;
+            resize: vertical;
+        }
+
+        .json-input-section button {
+            display: block;
+            width: 100%;
+            padding: 10px 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            margin-top: 15px;
+            transition: background-color 0.2s ease;
+        }
+
+        .json-input-section button:hover {
+            background-color: #0056b3;
+        }
+
+        /* Custom Alert Box Styling (instead of alert()) */
+        .custom-alert {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            padding: 15px 25px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            display: none; /* Hidden by default */
+            text-align: center;
+            font-size: 1.1em;
+        }
+
+        .custom-alert button {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 15px;
+            font-size: 0.9em;
+            transition: background-color 0.2s ease;
+        }
+
+        .custom-alert button:hover {
+            background-color: #c82333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Ship Computer Program Selector</h1>
+        
+        <div class="json-input-section">
+            <h2>Input Ship JSON</h2>
+            <textarea id="jsonInput" placeholder="Paste your ship JSON here..."></textarea>
+            <button id="loadJsonButton">Load Ship Data</button>
+        </div>
+
+        <div class="capacity-info">
+            <h2>Computer Capacity</h2>
+            <p>CPU Capacity: <span id="cpuCapacity"></span></p>
+            <p>Storage Capacity: <span id="storageCapacity"></span></p>
+            <p>Total Available Space: <span id="totalAvailable"></span></p>
+            <p>Space Used: <span id="spaceUsed">0</span> / <span id="totalAvailable2"></span></p>
+        </div>
+
+        <div class="packages">
+            <h2>Standard Software Packages</h2>
+            <label><input type="checkbox" id="package1"> **Combat Suite**: Predict-1, Target, Launch</label>
+            <label><input type="checkbox" id="package2"> **Navigation & Jump Suite**: Jump-1, Navigation, Gunner Interact</label>
+        </div>
+        
+        <div class="program-list-container">
+            <h2>Individual Programs</h2>
+            <div id="programList"></div>
+        </div>
+
+        <div class="json-output-section">
+            <h2>Updated Ship JSON</h2>
+            <textarea id="jsonOutput" readonly></textarea>
+        </div>
+    </div>
+
+    <!-- Custom Alert Box -->
+    <div id="customAlert" class="custom-alert">
+        <p id="alertMessage"></p>
+        <button onclick="document.getElementById('customAlert').style.display = 'none';">OK</button>
+    </div>
+
+    <script>
+        // This is your initial JSON data. It will be overwritten if you load new data.
+        let shipData = {
+            "hull_tonnage": 100,
+            "jump_drive": {
+                "drive_letter": "A",
+                "mass_tons": 10,
+                "cost_mcr": 10,
+                "drive_rating": 2
+            },
+            "maneuver_drive": {
+                "drive_letter": "A",
+                "mass_tons": 1,
+                "cost_mcr": 4,
+                "drive_rating": 2
+            },
+            "power_plant": {
+                "drive_letter": "A",
+                "mass_tons": 4,
+                "cost_mcr": 8
+            },
+            "computer": {
+                "model": "1",
+                "mcr": 2,
+                "tons": 1,
+                "cpu_capacity": 2,
+                "storage_capacity": 4,
+                "tl": 5
+            },
+            "staterooms": 2,
+            "low_berths": 0,
+            "armament": [],
+            "fuel_tons": 20,
+            "cargo_tons": 72,
+            "isStreamlined": false,
+            "notes": "",
+            "calculated_statistics": {
+                "allocated_mass": 100,
+                "unallocated_mass": 36,
+                "total_component_cost": 25,
+                "design_cost": 0.26,
+                "streamlining_cost": 0,
+                "total_final_cost": 25.26,
+                "bridge_mass": 20,
+                "bridge_cost": 0.5,
+                "cargo_tons": 36,
+                "aManeuverDM": "-1",
+                "turnRadius": 12,
+                "speedHexes": 1,
+                "jump_drive_rating": 2,
+                "maneuver_drive_rating": 2,
+                "armor_points": 3,
+                "armor_mass": 0,
+                "armor_cost": 0,
+                "armament_mass": 0,
+                "calculated_cargo_tons": 72
+            },
+            "crew_requirements": [
+                "Pilot",
+                "Engineer"
+            ],
+            "bridge_skills": [],
+            "gunner_skills": [],
+            "programs": [], // This array will be updated with selected programs
+            "additional_rooms": [],
+            "armor": {
+                "armor_letter": "A",
+                "armor_mass": 0,
+                "armor_cost": 0
+            }
+        };
+
+        // The list of programs you provided
+        const allPrograms = [
+            { space: 1, mcr: 2.0, title: "Predict-1" },
+            { space: 2, mcr: 4.0, title: "Predict-2" },
+            { space: 1, mcr: 6.0, title: "Predict-3" },
+            { space: 3, mcr: 8.0, title: "Predict-4" },
+            { space: 2, mcr: 10.0, title: "Predict-5" },
+            { space: 1, mcr: 1.0, title: "Gunner Interact" },
+            { space: 1, mcr: 1.0, title: "Target" },
+            { space: 1, mcr: 0.5, title: "Select-1" },
+            { space: 2, mcr: 0.8, title: "Select-2" },
+            { space: 1, mcr: 1.0, title: "Select-3" },
+            { space: 1, mcr: 2.0, title: "Multi-target-2" },
+            { space: 2, mcr: 2.0, title: "Multi-target-3" },
+            { space: 4, mcr: 3.0, title: "Multi-target-4" },
+            { space: 1, mcr: 2.0, title: "Launch" },
+            { space: 1, mcr: 4.0, title: "Double Fire" },
+            { space: 1, mcr: 1.0, title: "Maneuver/Evade-1" },
+            { space: 2, mcr: 2.0, title: "Maneuver/Evade-2" },
+            { space: 3, mcr: 3.0, title: "Maneuver/Evade-3" },
+            { space: 4, mcr: 4.0, title: "Maneuver/Evade-4" },
+            { space: 2, mcr: 5.0, title: "Maneuver/Evade-5" },
+            { space: 3, mcr: 6.0, title: "Maneuver/Evade-6" },
+            { space: 1, mcr: 0.5, title: "Auto/Evade" },
+            { space: 1, mcr: 0.5, title: "Return Fire" },
+            { space: 1, mcr: 1.0, title: "Anti-Missile" },
+            { space: 2, mcr: 1.0, title: "ECM" },
+            { space: 1, mcr: 0.1, title: "Maneuver" },
+            { space: 1, mcr: 0.2, title: "Jump-1" },
+            { space: 2, mcr: 0.3, title: "Jump-2" },
+            { space: 3, mcr: 0.4, title: "Jump-3" },
+            { space: 4, mcr: 0.5, title: "Jump-4" },
+            { space: 5, mcr: 0.6, title: "Jump-5" },
+            { space: 6, mcr: 0.7, title: "Jump-6" },
+            { space: 1, mcr: 0.1, title: "Navigation" },
+            { space: 2, mcr: 0.1, title: "Generate" },
+            { space: 1, mcr: 0.1, title: "Anti-Hijack" }
+        ];
+
+        // Define the standard packages with program titles
+        const standardPackages = {
+            package1: [
+                "Predict-1", "Target", "Launch"
+            ],
+            package2: [
+                "Jump-1", "Navigation", "Gunner Interact"
+            ]
+        };
+
+        // Get DOM elements
+        const cpuCapacityEl = document.getElementById('cpuCapacity');
+        const storageCapacityEl = document.getElementById('storageCapacity');
+        const totalAvailableEl = document.getElementById('totalAvailable');
+        const totalAvailableEl2 = document.getElementById('totalAvailable2');
+        const spaceUsedEl = document.getElementById('spaceUsed');
+        const programListEl = document.getElementById('programList');
+        const package1Checkbox = document.getElementById('package1');
+        const package2Checkbox = document.getElementById('package2');
+        const jsonInputEl = document.getElementById('jsonInput');
+        const loadJsonButton = document.getElementById('loadJsonButton');
+        const jsonOutputEl = document.getElementById('jsonOutput');
+        const customAlert = document.getElementById('customAlert');
+        const alertMessage = document.getElementById('alertMessage');
+
+        let totalCapacity = 0;
+        let currentSpaceUsed = 0;
+        // Store references to program checkboxes by their title for easy access
+        let programCheckboxes = {};
+
+        // Function to display a custom alert message
+        function showAlert(message) {
+            alertMessage.textContent = message;
+            customAlert.style.display = 'block';
+        }
+
+        // Initialize the page with computer capacities and program list
+        function initialize() {
+            // Ensure shipData.computer exists before accessing its properties
+            if (!shipData.computer) {
+                showAlert("Error: 'computer' object not found in JSON data. Please provide valid ship JSON.");
+                return;
+            }
+            if (!shipData.programs) {
+                shipData.programs = []; // Initialize if missing
+            }
+
+            const computer = shipData.computer;
+            cpuCapacityEl.textContent = computer.cpu_capacity;
+            storageCapacityEl.textContent = computer.storage_capacity;
+            totalCapacity = computer.cpu_capacity + computer.storage_capacity;
+            totalAvailableEl.textContent = totalCapacity;
+            totalAvailableEl2.textContent = totalCapacity;
+            
+            renderProgramList();
+            // Ensure event listeners are only added once or are idempotent
+            if (!loadJsonButton.dataset.listenersAdded) {
+                addEventListeners();
+                loadJsonButton.dataset.listenersAdded = 'true';
+            }
+            
+            // Set initial checkbox states based on shipData.programs
+            Object.values(programCheckboxes).forEach(checkbox => {
+                checkbox.checked = shipData.programs.includes(checkbox.dataset.title);
+            });
+
+            // Reset package checkboxes
+            package1Checkbox.checked = false;
+            package2Checkbox.checked = false;
+
+            updateSpaceUsed(); // Initial update of space used and output JSON
+        }
+
+        // Render the list of individual programs with checkboxes
+        function renderProgramList() {
+            programListEl.innerHTML = ''; // Clear existing list
+            programCheckboxes = {}; // Clear previous references
+            allPrograms.forEach(program => {
+                // Create a unique ID for each checkbox based on the program title
+                const programId = program.title.replace(/[^a-zA-Z0-9]/g, '');
+                const programItem = document.createElement('div');
+                programItem.className = 'program-item';
+                programItem.innerHTML = `
+                    <label>
+                        <input type="checkbox" id="${programId}" data-space="${program.space}" data-title="${program.title}">
+                        ${program.title}
+                    </label>
+                    <span>Space: ${program.space}</span>
+                `;
+                programListEl.appendChild(programItem);
+                // Store a reference to the checkbox element
+                programCheckboxes[program.title] = document.getElementById(programId);
+            });
+        }
+
+        // Add event listeners to all checkboxes (individual programs and packages) and the load button
+        function addEventListeners() {
+            // Listen for changes on individual program checkboxes
+            programListEl.addEventListener('change', (e) => {
+                if (e.target.type === 'checkbox') {
+                    // Pass the checkbox that was just changed to updateSpaceUsed
+                    updateSpaceUsed(e.target);
+                }
+            });
+
+            // Listen for changes on standard package checkboxes
+            package1Checkbox.addEventListener('change', handlePackageChange.bind(null, standardPackages.package1, package1Checkbox));
+            package2Checkbox.addEventListener('change', handlePackageChange.bind(null, standardPackages.package2, package2Checkbox));
+
+            // Listen for click on Load JSON button
+            loadJsonButton.addEventListener('click', loadShipDataFromJsonInput);
+        }
+
+        // Handle changes for standard software packages
+        function handlePackageChange(packagePrograms, packageCheckbox) {
+            // Set the checked state of individual programs based on the package checkbox
+            packagePrograms.forEach(title => {
+                const checkbox = programCheckboxes[title];
+                if (checkbox) {
+                    checkbox.checked = packageCheckbox.checked;
+                }
+            });
+            // Re-evaluate all checkboxes to get the new total space after package change
+            updateSpaceUsed();
+        }
+
+        // Update the total space used, enforce capacity, and update shipData.programs
+        function updateSpaceUsed(lastChangedCheckbox = null) {
+            let newSpaceUsed = 0;
+            let selectedProgramTitles = [];
+            
+            // Calculate total space from all currently checked checkboxes
+            Object.values(programCheckboxes).forEach(checkbox => {
+                if (checkbox.checked) {
+                    const programSpace = parseInt(checkbox.dataset.space);
+                    const programTitle = checkbox.dataset.title;
+                    
+                    // Temporarily add to newSpaceUsed to check against capacity
+                    newSpaceUsed += programSpace;
+                    selectedProgramTitles.push(programTitle);
+                }
+            });
+
+            // If the new space exceeds the total capacity, handle the overflow
+            if (newSpaceUsed > totalCapacity) {
+                // Display a custom alert
+                showAlert(`Cannot add "${lastChangedCheckbox.dataset.title}". Exceeds maximum capacity of ${totalCapacity}.`);
+                if (lastChangedCheckbox) {
+                    lastChangedCheckbox.checked = false; // Uncheck the program that caused the overflow
+                    // Remove the problematic program from the selected list and recalculate space
+                    const index = selectedProgramTitles.indexOf(lastChangedCheckbox.dataset.title);
+                    if (index > -1) {
+                        selectedProgramTitles.splice(index, 1);
+                    }
+                    newSpaceUsed -= parseInt(lastChangedCheckbox.dataset.space); 
+                }
+            }
+            
+            currentSpaceUsed = newSpaceUsed;
+            spaceUsedEl.textContent = currentSpaceUsed;
+
+            // Update the shipData.programs array
+            shipData.programs = selectedProgramTitles;
+
+            // Display the updated JSON
+            displayOutputJson();
+        }
+
+        // Load ship data from the JSON input textarea
+        function loadShipDataFromJsonInput() {
+            const jsonString = jsonInputEl.value.trim();
+            if (!jsonString) {
+                showAlert("Please paste JSON data into the input field.");
+                return;
+            }
+
+            try {
+                const parsedData = JSON.parse(jsonString);
+                // Basic validation for required 'computer' object
+                if (!parsedData.computer || typeof parsedData.computer.cpu_capacity === 'undefined' || typeof parsedData.computer.storage_capacity === 'undefined') {
+                    showAlert("Invalid JSON: Missing 'computer' object or 'cpu_capacity'/'storage_capacity'.");
+                    return;
+                }
+                shipData = parsedData;
+                initialize(); // Re-initialize the UI with the new data
+            } catch (e) {
+                showAlert("Invalid JSON format. Please check your input.");
+                console.error("JSON parsing error:", e);
+            }
+        }
+
+        // Display the current shipData object as formatted JSON in the output textarea
+        function displayOutputJson() {
+            // Ensure programs array exists before stringifying
+            if (!shipData.programs) {
+                shipData.programs = [];
+            }
+            jsonOutputEl.value = JSON.stringify(shipData, null, 2); // Pretty print JSON
+        }
+
+        // Start the application when the DOM is fully loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            // Populate the input field with the initial shipData for convenience
+            jsonInputEl.value = JSON.stringify(shipData, null, 2);
+            initialize();
+        });
+    </script>
+</body>
+</html>
