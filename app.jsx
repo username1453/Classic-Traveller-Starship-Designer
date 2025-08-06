@@ -1,7 +1,3 @@
-// No longer need to import React or ReactDOM here, as they are loaded globally via CDN in index.html
-// import React from 'react';
-// import ReactDOM from 'react-dom/client';
-
 const shipDatabase = {
   "drives": {
     "jump_drives": [
@@ -673,5 +669,7 @@ function App() {
   );
 }
 
+// This line is crucial for direct browser loading.
+// It tells ReactDOM to render the App component into the 'root' element.
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(<App />);
