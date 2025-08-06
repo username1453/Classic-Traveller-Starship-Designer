@@ -557,7 +557,7 @@
 
                     // --- ADD MISSING BLANK VARIABLES IF NOT PRESENT AND CHECK FOR REQUIRED FIELDS ---
                     if (!currentShipData.bridge_skills) currentShipData.bridge_skills = [];
-                    if (!currentShipData.gunner_skills) currentShipData.gunner_skills = []; // Corrected variable name
+                    if (!currentShipData.gunner_skills) currentShipData.gunner_skills = [];
                     if (!currentShipData.programs) currentShipData.programs = [];
                     if (!currentShipData.additional_rooms) currentShipData.additional_rooms = []; // Initialize additional_rooms
                     if (!currentShipData.armor) currentShipData.armor = { "armor_letter": null }; // Initialize armor object if missing
@@ -660,80 +660,81 @@
                     currentShipData.jump_drive.mass_tons = jDriveMass;
                     currentShipData.jump_drive.cost_mcr = jDriveCost;
                     
-                    // Calculate total costs and masses
-                    let componentsMassSum = 0; // This will track all components EXCEPT cargo
+                    // Calculate total costs
                     let totalComponentCost = 0;
 
-                    // Add costs and masses from drives, power plant, and computer
+                    // Add costs from drives, power plant, and computer
                     totalComponentCost += currentShipData.jump_drive.cost_mcr;
                     totalComponentCost += currentShipData.maneuver_drive.cost_mcr;
                     totalComponentCost += currentShipData.power_plant.cost_mcr;
                     totalComponentCost += currentShipData.computer.mcr;
                     
-                    componentsMassSum += currentShipData.jump_drive.mass_tons;
-                    componentsMassSum += currentShipData.maneuver_drive.mass_tons;
-                    componentsMassSum += currentShipData.power_plant.mass_tons;
-                    componentsMassSum += currentShipData.computer.tons;
-
-                    // Add bridge, staterooms, fuel, and armament.
+                    // Add bridge, staterooms costs
                     totalComponentCost += staticComponentCosts.bridge_cost;
-                    componentsMassSum += staticComponentCosts.bridge_mass;
-                    
                     totalComponentCost += currentShipData.staterooms * staticComponentCosts.stateroom_cost;
-                    componentsMassSum += currentShipData.staterooms * staticComponentCosts.stateroom_mass;
 
-                    // Low berths typically consume 1 ton each (assuming basic setup)
-                    // You might need to adjust this based on your specific rules for low_berths
-                    componentsMassSum += currentShipData.low_berths * 1; 
-                    
-                    componentsMassSum += currentShipData.fuel_tons;
-
-                    // Add armament mass (assuming 1 ton per hardpoint if armament array contains items)
-                    const armamentMass = currentShipData.armament.length * staticComponentCosts.hardpoint_mass_per_unit;
-                    componentsMassSum += armamentMass; 
-
-                    // Add additional room tonnage
-                    let additionalRoomsMass = 0;
-                    if (currentShipData.additional_rooms && currentShipData.additional_rooms.length > 0) {
-                        currentShipData.additional_rooms.forEach(room => {
-                            additionalRoomsMass += room.tonnage;
-                        });
-                    }
-                    componentsMassSum += additionalRoomsMass;
-
-
-                    // Add armor mass and cost
-                    componentsMassSum += armorMass;
+                    // Add armor cost
                     totalComponentCost += armorCost;
 
-                    // --- CARGO SPACE AND ALLOCATED MASS LOGIC ---
-                    let calculatedCargoTons = originalCargoTons; // Start with the initial cargo tons from input
-                    let finalAllocatedMass = componentsMassSum; // Allocated mass is sum of all components *excluding* cargo
+                    // Initialize armamentMass here to ensure it's always defined
+                    const armamentMass = currentShipData.armament.length * staticComponentCosts.hardpoint_mass_per_unit;
 
-                    // If the total mass of components (excluding cargo) exceeds hull tonnage, reduce cargo
-                    // The deficit comes directly out of the original cargo_tons
-                    if (finalAllocatedMass > hullTonnage) {
-                        const deficit = finalAllocatedMass - hullTonnage;
-                        calculatedCargoTons = Math.max(0, originalCargoTons - deficit);
-                        finalAllocatedMass = hullTonnage; // Allocated mass cannot exceed hull tonnage
-                        displayMessage(`Warning: Ship components exceed hull tonnage by ${deficit.toFixed(2)} tons. Cargo space reduced to ${calculatedCargoTons.toFixed(2)} tons.`, 'warning');
-                    } else {
-                        // If there's remaining space after components, add it to cargo
-                        const remainingSpace = hullTonnage - finalAllocatedMass;
-                        calculatedCargoTons = originalCargoTons + remainingSpace;
-                        finalAllocatedMass = hullTonnage; // All hull tonnage is now allocated (components + expanded cargo)
+                    // --- CARGO SPACE AND ALLOCATED MASS LOGIC ---
+                    // Calculate total mass of all components *excluding cargo*
+                    let componentsMassExcludingCargo = 0;
+                    componentsMassExcludingCargo += jDriveMass; // J-Drive mass
+                    componentsMassExcludingCargo += currentShipData.maneuver_drive.mass_tons; // M-Drive mass
+                    componentsMassExcludingCargo += currentShipData.power_plant.mass_tons; // Power Plant mass
+                    componentsMassExcludingCargo += currentShipData.computer.tons; // Computer mass
+                    componentsMassExcludingCargo += staticComponentCosts.bridge_mass; // Bridge mass
+                    componentsMassExcludingCargo += currentShipData.staterooms * staticComponentCosts.stateroom_mass; // Stateroom mass
+                    componentsMassExcludingCargo += currentShipData.low_berths * 1; // Low berths mass (1 ton each)
+                    componentsMassExcludingCargo += currentShipData.fuel_tons; // Fuel mass
+                    componentsMassExcludingCargo += armamentMass; // Armament mass (now correctly defined)
+                    componentsMassExcludingCargo += armorMass; // Calculated armor mass
+                    
+                    // Add additional room tonnage
+                    if (currentShipData.additional_rooms && currentShipData.additional_rooms.length > 0) {
+                        currentShipData.additional_rooms.forEach(room => {
+                            componentsMassExcludingCargo += room.tonnage;
+                        });
                     }
+
+                    // Calculate the available space for cargo
+                    let availableCargoSpace = hullTonnage - componentsMassExcludingCargo;
+
+                    let finalCalculatedCargoTons;
+                    let finalAllocatedMass;
+
+                    if (availableCargoSpace < 0) {
+                        // Components alone exceed hull tonnage
+                        finalCalculatedCargoTons = 0;
+                        finalAllocatedMass = hullTonnage; // Allocated mass is capped at hull tonnage
+                        displayMessage(`Critical Warning: Ship components (${componentsMassExcludingCargo.toFixed(2)} tons) exceed hull tonnage (${hullTonnage} tons). No cargo space available.`, 'error');
+                    } else {
+                        // There is space available for cargo
+                        finalCalculatedCargoTons = availableCargoSpace;
+                        finalAllocatedMass = hullTonnage; // The ship is fully allocated (components + cargo)
+                    }
+
+                    // If the user specified an original cargo_tons, and it was higher than the calculated available space,
+                    // issue a warning. The actual cargo will be capped at finalCalculatedCargoTons.
+                    if (originalCargoTons > finalCalculatedCargoTons) {
+                         displayMessage(`Warning: Specified cargo (${originalCargoTons} tons) exceeds available hull space. Cargo capped at ${finalCalculatedCargoTons.toFixed(2)} tons.`, 'warning');
+                    }
+
+                    // Update the main cargo_tons field in shipData to reflect the calculated value
+                    currentShipData.cargo_tons = parseFloat(finalCalculatedCargoTons.toFixed(2));
 
 
                     // Prepare the final calculated_statistics object
                     currentShipData.calculated_statistics = {
                         ...currentShipData.calculated_statistics, // preserve any existing data
-                        allocated_mass: parseFloat(finalAllocatedMass.toFixed(2)), // This is now capped at hull_tonnage or fills it
-                        // unallocated_mass is removed as cargo is the flexible space
-                        total_component_cost: totalComponentCost, // Keep as float
+                        allocated_mass: parseFloat(finalAllocatedMass.toFixed(2)),
+                        total_component_cost: parseFloat(totalComponentCost.toFixed(2)), // Keep as float
                         design_cost: parseFloat(currentShipData.calculated_statistics?.design_cost || 0.00), // Carry forward or default
                         streamlining_cost: parseFloat(currentShipData.calculated_statistics?.streamlining_cost || 0.00), // Carry forward or default
-                        total_final_cost: totalComponentCost + parseFloat(currentShipData.calculated_statistics?.design_cost || 0.00) + parseFloat(currentShipData.calculated_statistics?.streamlining_cost || 0.00), // Sum as float
+                        total_final_cost: parseFloat((totalComponentCost + parseFloat(currentShipData.calculated_statistics?.design_cost || 0.00) + parseFloat(currentShipData.calculated_statistics?.streamlining_cost || 0.00)).toFixed(2)), // Sum as float
                         bridge_mass: staticComponentCosts.bridge_mass,
                         bridge_cost: staticComponentCosts.bridge_cost,
                         // Add derived combat stats
@@ -742,12 +743,8 @@
                         armor_mass: armorMass,
                         armor_cost: armorCost,
                         armament_mass: armamentMass, // Add armament mass to calculated stats
-                        calculated_cargo_tons: parseFloat(calculatedCargoTons.toFixed(2)) // New calculated cargo
+                        calculated_cargo_tons: parseFloat(finalCalculatedCargoTons.toFixed(2)) // New calculated cargo
                     };
-
-                    // Update the main cargo_tons field in shipData to reflect the calculated value
-                    currentShipData.cargo_tons = parseFloat(calculatedCargoTons.toFixed(2));
-
 
                     // --- DISPLAY OUTPUT ---
                     jsonOutput.value = JSON.stringify(currentShipData, null, 2);
@@ -758,7 +755,6 @@
                     document.getElementById('summary-turn-radius').textContent = derivedStats.turnRadius;
                     document.getElementById('summary-speed').textContent = derivedStats.speedHexes;
                     document.getElementById('summary-allocated-mass').textContent = currentShipData.calculated_statistics.allocated_mass.toFixed(2);
-                    // The 'summary-unallocated-mass' element is removed from HTML, so no update needed here.
                     document.getElementById('summary-total-cost').textContent = currentShipData.calculated_statistics.total_final_cost.toFixed(2);
                     document.getElementById('summary-armor-points').textContent = armorPoints;
                     document.getElementById('summary-armor-mass').textContent = armorMass.toFixed(2);
