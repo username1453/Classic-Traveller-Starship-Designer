@@ -445,7 +445,10 @@ function App() {
     URL.revokeObjectURL(url);
   };
   
-  const suggestedFuel = ship.jump_drive ? (0.1 * ship.hull_tonnage * (ship.jump_drive.drive_letter.charCodeAt(0) - 64)) : 0;
+  // Corrected suggestedFuel calculation to use the drive rating
+  const jumpDriveRating = parseInt(getDriveRating(ship.hull_tonnage, ship.jump_drive.drive_letter));
+  const suggestedFuel = ship.jump_drive && !isNaN(jumpDriveRating) ? (0.1 * ship.hull_tonnage * jumpDriveRating) : 0;
+  
   const validDriveLetters = getValidDriveLetters(ship.hull_tonnage);
 
   return (
@@ -669,7 +672,5 @@ function App() {
   );
 }
 
-// This line is crucial for direct browser loading.
-// It tells ReactDOM to render the App component into the 'root' element.
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(<App />);
