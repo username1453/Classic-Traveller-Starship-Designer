@@ -1,3 +1,7 @@
+// No longer need to import React or ReactDOM here, as they are loaded globally via CDN in index.html
+// import React from 'react';
+// import ReactDOM from 'react-dom/client';
+
 const shipDatabase = {
   "drives": {
     "jump_drives": [
@@ -156,6 +160,7 @@ function App() {
     power_plant: shipDatabase.drives.power_plants[0],
     computer: shipDatabase.computers[0],
     staterooms: 2,
+    low_berths: 0, // Initialize low berths
     armament: [],
     fuel_tons: 20,
     cargo_tons: 0,
@@ -228,6 +233,16 @@ function App() {
     if (stateroomDetails) {
       allocatedMass += stateroomDetails.mass_tons * ship.staterooms;
       totalComponentCostMcr += parseFloat(crToMcr(stateroomDetails.cost_mcr)) * ship.staterooms;
+    }
+
+    // Calculate Low Berth mass and cost
+    const lowBerthDetails = shipDatabase.fittings.find(f => f.item === "Low Berth");
+    if (lowBerthDetails) {
+      const lowBerthMassAdded = lowBerthDetails.mass_tons * ship.low_berths;
+      const lowBerthCostAdded = parseFloat(crToMcr(lowBerthDetails.cost_mcr)) * ship.low_berths;
+      allocatedMass += lowBerthMassAdded;
+      totalComponentCostMcr += lowBerthCostAdded;
+      // Removed console.log statements
     }
 
     ship.armament.forEach(item => {
@@ -359,6 +374,7 @@ function App() {
     ship.power_plant,
     ship.computer,
     ship.staterooms,
+    ship.low_berths, // Add low_berths to dependencies
     ship.armament,
     ship.fuel_tons,
     ship.isStreamlined
@@ -369,7 +385,8 @@ function App() {
     if (type === "checkbox") {
         setShip(prev => ({ ...prev, [name]: checked }));
     } else {
-        setShip(prev => ({ ...prev, [name]: parseInt(value) || 0 }));
+        // Ensure numerical inputs are not negative
+        setShip(prev => ({ ...prev, [name]: Math.max(0, parseInt(value) || 0) }));
     }
   };
 
@@ -571,6 +588,18 @@ function App() {
               className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
             />
           </div>
+
+          <div className="mb-4">
+            <label htmlFor="low_berths" className="block text-sm font-medium text-gray-600 mb-1">Number of Low Berths</label>
+            <input
+              id="low_berths"
+              type="number"
+              name="low_berths"
+              value={ship.low_berths}
+              onChange={handleInputChange}
+              className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+            />
+          </div>
           
           <h3 className="text-xl font-semibold text-gray-700 mt-6 mb-2">Armament</h3>
           {ship.armament.map((item, index) => (
@@ -604,7 +633,7 @@ function App() {
           <div className="space-y-3">
             <p className="text-lg text-gray-800"><strong>Total Mass:</strong> {ship.hull_tonnage} tons</p>
             <p className="text-lg text-gray-800"><strong>Allocated Mass:</strong> {stats.allocated_mass.toFixed(2)} tons</p>
-            <p className="text-lg text-gray-800"><strong>Cargo Space:</strong> {ship.cargo_tons.toFixed(2)} tons</p>
+            <p className="text-lg text-gray-800"><strong>Cargo Space:</strong> {stats.unallocated_mass.toFixed(2)} tons</p> {/* Changed to unallocated_mass for clarity */}
             <hr className="border-gray-300 my-4" />
             <p className="text-lg text-gray-800"><strong>Bridge Mass:</strong> {stats.bridge_mass} tons</p>
             <p className="text-lg text-gray-800"><strong>Bridge Cost:</strong> {stats.bridge_cost} MCr</p>
@@ -646,7 +675,7 @@ function App() {
       {/* Alert Modal */}
       {showAlert && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
-          <div className="p-8 bg-white rounded-xl shadow-2xl max-w-sm mx-auto">
+          <div className="p-8 bg-white rounded-xl shadow-2xl max_w-sm mx-auto">
             <div className="text-center">
               <h3 className="text-lg leading-6 font-medium text-gray-900">Warning</h3>
               <div className="mt-2 px-7 py-3">
