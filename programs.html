@@ -17,10 +17,11 @@
             align-items: flex-start;
             min-height: 100vh;
             box-sizing: border-box;
+            position: relative; /* Needed for absolute positioning of the button */
         }
 
         .container {
-            max-width: 800px;
+            max-width: 1200px; /* Increased max-width for horizontal layout */
             width: 100%;
             margin: 20px auto;
             background: #ffffff;
@@ -29,6 +30,8 @@
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
             border: 1px solid #e0e0e0;
             box-sizing: border-box;
+            display: flex; /* Use flexbox for internal layout */
+            flex-direction: column; /* Arrange sections vertically within container */
         }
 
         h1, h2 {
@@ -38,11 +41,32 @@
             font-weight: 600;
         }
 
+        /* Main content wrapper for horizontal layout */
+        .main-content-wrapper {
+            display: flex;
+            flex-wrap: wrap; /* Allow wrapping on smaller screens */
+            gap: 25px; /* Space between columns */
+            justify-content: center; /* Center content when it wraps */
+        }
+
+        /* New column structure */
+        .json-programs-column, .capacity-programs-column {
+            flex: 1; /* Allow columns to grow and shrink */
+            min-width: 300px; /* Minimum width for columns before wrapping */
+            display: flex;
+            flex-direction: column;
+            gap: 25px; /* Space between sections within columns */
+        }
+
+        /* Adjusting column widths for a balanced look */
+        .json-programs-column { flex: 1.2; } /* Input JSON, Packages, Output JSON */
+        .capacity-programs-column { flex: 1.8; } /* Capacity, Individual Programs */
+
+
         .capacity-info {
             background-color: #e8f0fe;
             border: 1px solid #a7c7ed;
             padding: 20px;
-            margin-bottom: 30px;
             border-radius: 8px; /* Rounded corners */
             text-align: center;
             font-size: 1.1em;
@@ -62,7 +86,6 @@
             background-color: #f9f9f9;
             border: 1px solid #e0e0e0;
             padding: 20px;
-            margin-bottom: 25px;
             border-radius: 8px; /* Rounded corners */
         }
 
@@ -85,7 +108,7 @@
             font-family: 'Consolas', 'Monaco', monospace;
             font-size: 0.9em;
             width: calc(100% - 20px);
-            height: 150px;
+            height: 250px; /* Increased height for better visibility */
             padding: 10px;
             margin-top: 10px;
             border-radius: 5px;
@@ -183,40 +206,145 @@
         .custom-alert button:hover {
             background-color: #c82333;
         }
+
+        /* Start Over Button Styling */
+        .start-over-button-container {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 100; /* Ensure it's above other elements */
+        }
+
+        .start-over-button {
+            background-color: #6c757d; /* A neutral gray */
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9em;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: background-color 0.2s ease, transform 0.1s ease;
+        }
+
+        .start-over-button:hover {
+            background-color: #5a6268;
+            transform: translateY(-1px);
+        }
+
+        .start-over-button:active {
+            transform: translateY(0);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+
+        /* Export Buttons Container */
+        .export-buttons-container {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 30px; /* Space above buttons */
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .export-buttons-container button {
+            padding: 12px 25px;
+            font-size: 1em;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .export-buttons-container button:hover {
+            transform: translateY(-1px);
+        }
+
+        #exportJsonButton {
+            background-color: #28a745; /* Green for JSON */
+            color: white;
+        }
+
+        #exportJsonButton:hover {
+            background-color: #218838;
+        }
+
+        #exportPdfButton {
+            background-color: #dc3545; /* Red for PDF */
+            color: white;
+        }
+
+        #exportPdfButton:hover {
+            background-color: #c82333;
+        }
+
+        /* Responsive adjustments for smaller screens */
+        @media (max-width: 768px) {
+            .main-content-wrapper {
+                flex-direction: column; /* Stack columns vertically on small screens */
+            }
+            .json-programs-column, .capacity-programs-column {
+                min-width: unset; /* Remove min-width constraint */
+                width: 100%; /* Take full width */
+            }
+            .export-buttons-container {
+                flex-direction: column;
+                align-items: center;
+            }
+            .export-buttons-container button {
+                width: 80%; /* Make buttons wider on small screens */
+            }
+        }
     </style>
 </head>
 <body>
+    <div class="start-over-button-container">
+        <button id="startOverButton" class="start-over-button">Start Over</button>
+    </div>
+
     <div class="container">
         <h1>Ship Computer Program Selector</h1>
         
-        <div class="json-input-section">
-            <h2>Input Ship JSON</h2>
-            <textarea id="jsonInput" placeholder="Paste your ship JSON here..."></textarea>
-            <button id="loadJsonButton">Load Ship Data</button>
+        <div class="main-content-wrapper">
+            <div class="json-programs-column">
+                <div class="json-input-section">
+                    <h2>Input Ship JSON</h2>
+                    <textarea id="jsonInput" placeholder="Paste your ship JSON here..."></textarea>
+                    <button id="loadJsonButton">Load Ship Data</button>
+                </div>
+
+                <div class="packages">
+                    <h2>Standard Software Packages</h2>
+                    <label><input type="checkbox" id="package1"> **Combat Suite**: Predict-1, Target, Launch</label>
+                    <label><input type="checkbox" id="package2"> **Navigation & Jump Suite**: Jump-1, Navigation, Gunner Interact</label>
+                </div>
+                
+                <div class="json-output-section">
+                    <h2>Updated Ship JSON</h2>
+                    <textarea id="jsonOutput" readonly></textarea>
+                </div>
+            </div>
+
+            <div class="capacity-programs-column">
+                <div class="capacity-info">
+                    <h2>Computer Capacity</h2>
+                    <p>CPU Capacity: <span id="cpuCapacity"></span></p>
+                    <p>Storage Capacity: <span id="storageCapacity"></span></p>
+                    <p>Total Available Space: <span id="totalAvailable"></span></p>
+                    <p>Space Used: <span id="spaceUsed">0</span> / <span id="totalAvailable2"></span></p>
+                </div>
+                
+                <div class="program-list-container">
+                    <h2>Individual Programs</h2>
+                    <div id="programList"></div>
+                </div>
+            </div>
         </div>
 
-        <div class="capacity-info">
-            <h2>Computer Capacity</h2>
-            <p>CPU Capacity: <span id="cpuCapacity"></span></p>
-            <p>Storage Capacity: <span id="storageCapacity"></span></p>
-            <p>Total Available Space: <span id="totalAvailable"></span></p>
-            <p>Space Used: <span id="spaceUsed">0</span> / <span id="totalAvailable2"></span></p>
-        </div>
-
-        <div class="packages">
-            <h2>Standard Software Packages</h2>
-            <label><input type="checkbox" id="package1"> **Combat Suite**: Predict-1, Target, Launch</label>
-            <label><input type="checkbox" id="package2"> **Navigation & Jump Suite**: Jump-1, Navigation, Gunner Interact</label>
-        </div>
-        
-        <div class="program-list-container">
-            <h2>Individual Programs</h2>
-            <div id="programList"></div>
-        </div>
-
-        <div class="json-output-section">
-            <h2>Updated Ship JSON</h2>
-            <textarea id="jsonOutput" readonly></textarea>
+        <div class="export-buttons-container">
+            <button id="exportJsonButton">Export as JSON</button>
+            <button id="exportPdfButton">Export as PDF</button>
         </div>
     </div>
 
@@ -226,6 +354,8 @@
         <button onclick="document.getElementById('customAlert').style.display = 'none';">OK</button>
     </div>
 
+    <!-- jsPDF library for PDF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script>
         // This is your initial JSON data. It will be overwritten if you load new data.
         let shipData = {
@@ -361,6 +491,9 @@
         const jsonOutputEl = document.getElementById('jsonOutput');
         const customAlert = document.getElementById('customAlert');
         const alertMessage = document.getElementById('alertMessage');
+        const startOverButton = document.getElementById('startOverButton');
+        const exportJsonButton = document.getElementById('exportJsonButton');
+        const exportPdfButton = document.getElementById('exportPdfButton');
 
         let totalCapacity = 0;
         let currentSpaceUsed = 0;
@@ -448,6 +581,15 @@
 
             // Listen for click on Load JSON button
             loadJsonButton.addEventListener('click', loadShipDataFromJsonInput);
+
+            // Listen for click on Start Over button
+            startOverButton.addEventListener('click', () => {
+                location.reload(); // Reloads the page, effectively starting over
+            });
+
+            // Listen for export buttons
+            exportJsonButton.addEventListener('click', exportJson);
+            exportPdfButton.addEventListener('click', exportPdf);
         }
 
         // Handle changes for standard software packages
@@ -536,6 +678,42 @@
             }
             jsonOutputEl.value = JSON.stringify(shipData, null, 2); // Pretty print JSON
         }
+
+        // Function to export the current JSON data as a .json file
+        function exportJson() {
+            const jsonString = jsonOutputEl.value;
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'ship_programs.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url); // Clean up the object URL
+        }
+
+        // Function to export the current JSON data as a PDF
+        function exportPdf() {
+            // Check if jsPDF is available
+            if (typeof window.jspdf === 'undefined' || typeof window.jspdf.jsPDF === 'undefined') {
+                showAlert("PDF export library not loaded. Please try again or ensure internet connectivity.");
+                return;
+            }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const jsonString = jsonOutputEl.value;
+            const lines = doc.splitTextToSize(jsonString, 180); // Split text to fit page width
+
+            doc.setFontSize(12);
+            doc.text("Ship Program Configuration", 10, 10);
+            doc.setFontSize(10);
+            doc.text(lines, 10, 20); // Start text at Y=20
+
+            doc.save('ship_programs.pdf');
+        }
+
 
         // Start the application when the DOM is fully loaded
         document.addEventListener('DOMContentLoaded', () => {
