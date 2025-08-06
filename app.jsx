@@ -1,6 +1,6 @@
-// No longer need to import React or ReactDOM here, as they are loaded globally via CDN in index.html
-// import React from 'react';
-// import ReactDOM from 'react-dom/client';
+// IMPORTANT: This file is designed to run directly in the browser using global React and ReactDOM.
+// Therefore, 'import' statements for React and ReactDOM are intentionally omitted.
+// They are loaded via CDN in index.html.
 
 const shipDatabase = {
   "drives": {
@@ -150,6 +150,7 @@ const getComponent = (list, key, value) => list.find(item => item[key] == value)
 
 const crToMcr = (costCr) => (costCr / 1000000).toFixed(2);
 
+// Access React and ReactDOM from the global scope
 const { useState, useEffect } = React;
 
 function App() {
@@ -242,7 +243,6 @@ function App() {
       const lowBerthCostAdded = parseFloat(crToMcr(lowBerthDetails.cost_mcr)) * ship.low_berths;
       allocatedMass += lowBerthMassAdded;
       totalComponentCostMcr += lowBerthCostAdded;
-      // Removed console.log statements
     }
 
     ship.armament.forEach(item => {
@@ -468,6 +468,40 @@ function App() {
   
   const validDriveLetters = getValidDriveLetters(ship.hull_tonnage);
 
+  // Prepare the JSON output for display
+  const currentShipJson = JSON.stringify({
+    hull_tonnage: ship.hull_tonnage,
+    jump_drive: {
+      ...ship.jump_drive,
+      drive_rating: getDriveRating(ship.hull_tonnage, ship.jump_drive.drive_letter)
+    },
+    maneuver_drive: {
+      ...ship.maneuver_drive,
+      drive_rating: getDriveRating(ship.hull_tonnage, ship.maneuver_drive.drive_letter)
+    },
+    power_plant: ship.power_plant,
+    computer: ship.computer,
+    staterooms: ship.staterooms,
+    low_berths: ship.low_berths,
+    armament: ship.armament,
+    fuel_tons: ship.fuel_tons,
+    cargo_tons: ship.cargo_tons,
+    isStreamlined: ship.isStreamlined,
+    notes: ship.notes,
+    calculated_statistics: {
+      allocated_mass: stats.allocated_mass,
+      unallocated_mass: stats.unallocated_mass,
+      total_component_cost: stats.total_component_cost,
+      design_cost: stats.design_cost,
+      streamlining_cost: stats.streamlining_cost,
+      total_final_cost: stats.total_final_cost,
+      bridge_mass: stats.bridge_mass,
+      bridge_cost: stats.bridge_cost,
+      cargo_tons: ship.cargo_tons // Ensure this reflects the calculated cargo
+    },
+    crew_requirements: crew
+  }, null, 2);
+
   return (
     <div className="container mx-auto bg-white shadow-lg rounded-xl p-8">
       <h1 className="text-4xl font-bold text-gray-800 text-center mb-6">Starship Designer</h1>
@@ -633,7 +667,7 @@ function App() {
           <div className="space-y-3">
             <p className="text-lg text-gray-800"><strong>Total Mass:</strong> {ship.hull_tonnage} tons</p>
             <p className="text-lg text-gray-800"><strong>Allocated Mass:</strong> {stats.allocated_mass.toFixed(2)} tons</p>
-            <p className="text-lg text-gray-800"><strong>Cargo Space:</strong> {stats.unallocated_mass.toFixed(2)} tons</p> {/* Changed to unallocated_mass for clarity */}
+            <p className="text-lg text-gray-800"><strong>Cargo Space:</strong> {stats.unallocated_mass.toFixed(2)} tons</p>
             <hr className="border-gray-300 my-4" />
             <p className="text-lg text-gray-800"><strong>Bridge Mass:</strong> {stats.bridge_mass} tons</p>
             <p className="text-lg text-gray-800"><strong>Bridge Cost:</strong> {stats.bridge_cost} MCr</p>
@@ -672,10 +706,18 @@ function App() {
 
       </div>
       
+      {/* New section for displaying JSON output */}
+      <div className="mt-8 bg-gray-800 p-6 rounded-lg shadow-lg">
+        <h2 className="text-2xl font-semibold text-white mb-4">Current Ship JSON</h2>
+        <div className="bg-gray-900 p-4 rounded-md overflow-x-auto max-h-96">
+          <pre className="text-green-400 text-sm whitespace-pre-wrap"><code className="language-json">{currentShipJson}</code></pre>
+        </div>
+      </div>
+
       {/* Alert Modal */}
       {showAlert && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
-          <div className="p-8 bg-white rounded-xl shadow-2xl max_w-sm mx-auto">
+          <div className="p-8 bg-white rounded-xl shadow-2xl max-w-sm mx-auto">
             <div className="text-center">
               <h3 className="text-lg leading-6 font-medium text-gray-900">Warning</h3>
               <div className="mt-2 px-7 py-3">
