@@ -151,6 +151,13 @@ const crewRequirements = {
 
 const getComponent = (list, key, value) => list.find(item => item[key] == value);
 
+const getWeaponCount = (mountType) => {
+  if (mountType === "Single Turret") return 1;
+  if (mountType === "Double Turret") return 2;
+  if (mountType === "Triple Turret") return 3;
+  return 0; // Hardpoint with no turret
+};
+  
 // Access React and ReactDOM from the global scope
 const { useState, useEffect } = React;
 
@@ -249,11 +256,13 @@ function App() {
     ship.armament.forEach(item => {
       const mount = shipDatabase.armament.mounts.find(m => m.item === item.mount);
       const weapon = shipDatabase.armament.weapons.find(w => w.item === item.weapon);
+      
       if (mount && weapon) {
-        allocatedMass += (mount.mass_tons || 0);
-        allocatedMass += 1;
+        allocatedMass += (mount.mass_tons || 0) + 1; // Hardpoint + fire control
         totalComponentCostMcr += mount.cost_mcr;
-        totalComponentCostMcr += weapon.cost_mcr;
+        
+        const weaponCount = getWeaponCount(item.mount);
+        totalComponentCostMcr += weapon.cost_mcr * weaponCount; // Multiply by quantity
       }
     });
 
@@ -746,6 +755,7 @@ function App() {
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(<App />);
+
 
 
 
