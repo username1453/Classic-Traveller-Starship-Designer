@@ -119,6 +119,7 @@ const shipDatabase = {
       { "item": "Beam Laser", "mass_tons": null, "cost_mcr": 1 },
       { "item": "Missile Rack", "mass_tons": null, "cost_mcr": 0.75 },
       { "item": "Sandcaster", "mass_tons": null, "cost_mcr": 0.25 }
+      { "item": null, "mass_tons": null, "cost_mcr": 0 }
     ]
   },
   "fittings": [
@@ -745,6 +746,7 @@ function App() {
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(<App />);
+
 
 
 
