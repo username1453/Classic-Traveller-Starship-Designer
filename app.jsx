@@ -251,8 +251,8 @@ function App() {
       if (mount && weapon) {
         allocatedMass += (mount.mass_tons || 0);
         allocatedMass += 1;
-        totalComponentCostMcr += parseFloat(crToMcr(mount.cost_mcr));
-        totalComponentCostMcr += parseFloat(crToMcr(weapon.cost_mcr));
+        totalComponentCostMcr += mount.cost_mcr;
+        totalComponentCostMcr += weapon.cost_mcr;
       }
     });
 
@@ -745,5 +745,6 @@ function App() {
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(<App />);
+
 
 
