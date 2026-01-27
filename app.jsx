@@ -406,10 +406,14 @@ function App() {
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     if (type === "checkbox") {
-        setShip(prev => ({ ...prev, [name]: checked }));
+      setShip(prev => ({ ...prev, [name]: checked }));
     } else {
-        // Ensure numerical inputs are not negative
-        setShip(prev => ({ ...prev, [name]: Math.max(0, parseInt(value) || 0) }));
+      // Ensure numerical inputs are not negative and hull_tonnage doesn't exceed 5000
+      let numValue = Math.max(0, parseInt(value) || 0);
+      if (name === "hull_tonnage") {
+        numValue = Math.min(numValue, 5000);
+      }
+      setShip(prev => ({ ...prev, [name]: numValue }));
     }
   };
 
@@ -541,7 +545,7 @@ function App() {
               name="hull_tonnage"
               value={ship.hull_tonnage}
               onChange={handleInputChange}
-              min="0"
+              min="1"
               max="5000"
               className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
             />
@@ -772,6 +776,7 @@ function App() {
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(<App />);
+
 
 
 
