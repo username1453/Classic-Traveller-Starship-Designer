@@ -512,6 +512,7 @@ function App() {
     isStreamlined: ship.isStreamlined,
     notes: ship.notes,
     calculated_statistics: {
+      hull_cost: stats.hull_cost, 
       allocated_mass: stats.allocated_mass,
       unallocated_mass: stats.unallocated_mass,
       total_component_cost: stats.total_component_cost,
@@ -692,6 +693,7 @@ function App() {
             <p className="text-lg text-gray-800"><strong>Allocated Mass:</strong> {stats.allocated_mass.toFixed(2)} tons</p>
             <p className="text-lg text-gray-800"><strong>Cargo Space:</strong> {stats.unallocated_mass.toFixed(2)} tons</p>
             <hr className="border-gray-300 my-4" />
+            <p className="text-lg text-gray-800"><strong>Hull Cost:</strong> {stats.hull_cost} MCr</p>  {/* ADD THIS LINE */}
             <p className="text-lg text-gray-800"><strong>Bridge Mass:</strong> {stats.bridge_mass} tons</p>
             <p className="text-lg text-gray-800"><strong>Bridge Cost:</strong> {stats.bridge_cost} MCr</p>
             <p className="text-lg text-gray-800"><strong>Streamlining Cost:</strong> {stats.streamlining_cost} MCr</p>
@@ -768,6 +770,7 @@ function App() {
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(<App />);
+
 
 
 
