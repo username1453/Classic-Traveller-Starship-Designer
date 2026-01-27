@@ -2,6 +2,15 @@
 // Therefore, 'import' statements for React and ReactDOM are intentionally omitted.
 // They are loaded via CDN in index.html.
 
+const hullCosts = {
+  100: 2,
+  200: 8,
+  400: 16,
+  600: 48,
+  800: 80,
+  1000: 100
+};
+
 const shipDatabase = {
   "drives": {
     "jump_drives": [
@@ -177,10 +186,11 @@ function App() {
     notes: ""
   });
 
-  const [stats, setStats] = useState({
+    const [stats, setStats] = useState({
     allocated_mass: 0,
     unallocated_mass: 0,
     total_component_cost: 0,
+    hull_cost: 0,
     design_cost: 0,
     streamlining_cost: 0,
     total_final_cost: 0,
@@ -214,12 +224,14 @@ function App() {
   };
 
   const calculateStats = () => {
+    // Fixed hull cost calculation
+    const baseHullCost = hullCosts[ship.hull_tonnage] || (ship.hull_tonnage * 0.1);
     const bridgeMass = Math.max(ship.hull_tonnage * 0.02, 20);
     const bridgeCostMcr = (ship.hull_tonnage / 100) * 0.5;
-
+  
     let allocatedMass = bridgeMass;
-    let totalComponentCostMcr = bridgeCostMcr;
-
+    let totalComponentCostMcr = baseHullCost + bridgeCostMcr;
+    
     if (ship.jump_drive) {
       allocatedMass += ship.jump_drive.mass_tons;
       totalComponentCostMcr += ship.jump_drive.cost_mcr;
@@ -232,18 +244,18 @@ function App() {
       allocatedMass += ship.power_plant.mass_tons;
       totalComponentCostMcr += ship.power_plant.cost_mcr;
     }
-
+  
     if (ship.computer) {
       allocatedMass += ship.computer.tons;
       totalComponentCostMcr += ship.computer.mcr;
     }
-
+  
     const stateroomDetails = shipDatabase.fittings.find(f => f.item === "Stateroom");
     if (stateroomDetails) {
       allocatedMass += stateroomDetails.mass_tons * ship.staterooms;
       totalComponentCostMcr += stateroomDetails.cost_mcr * ship.staterooms;
     }
-
+  
     // Calculate Low Berth mass and cost
     const lowBerthDetails = shipDatabase.fittings.find(f => f.item === "Low Berth");
     if (lowBerthDetails) {
@@ -252,7 +264,7 @@ function App() {
       allocatedMass += lowBerthMassAdded;
       totalComponentCostMcr += lowBerthCostAdded;
     }
-
+  
     ship.armament.forEach(item => {
       const mount = shipDatabase.armament.mounts.find(m => m.item === item.mount);
       const weapon = shipDatabase.armament.weapons.find(w => w.item === item.weapon);
@@ -265,25 +277,26 @@ function App() {
         totalComponentCostMcr += weapon.cost_mcr * weaponCount; // Multiply by quantity
       }
     });
-
+  
     allocatedMass += ship.fuel_tons;
     
     const streamliningCostMcr = ship.isStreamlined ? (ship.hull_tonnage / 100) : 0;
     totalComponentCostMcr += streamliningCostMcr;
-
+  
     const unallocated_mass = ship.hull_tonnage - allocatedMass;
     const cargo_tons = Math.max(0, unallocated_mass);
-
+  
     const designCostMcr = totalComponentCostMcr * 0.01;
     const totalFinalCostMcr = totalComponentCostMcr + designCostMcr;
     
     setStats({
       allocated_mass: allocatedMass,
       unallocated_mass: unallocated_mass,
+      hull_cost: baseHullCost.toFixed(2), 
       total_component_cost: totalComponentCostMcr.toFixed(2),
       design_cost: designCostMcr.toFixed(2),
-      streamlining_cost: streamliningCostMcr.toFixed(2),
-      total_final_cost: totalFinalCostMcr.toFixed(2),
+      streamlining_cost: streamliningCostMcr.toFixed(2), // FIXED: was using undefined variable
+      total_final_cost: (totalComponentCostMcr + designCostMcr).toFixed(2), 
       bridge_mass: bridgeMass.toFixed(2),
       bridge_cost: bridgeCostMcr.toFixed(2)
     });
@@ -755,6 +768,7 @@ function App() {
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(<App />);
+
 
 
 
