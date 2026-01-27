@@ -92,8 +92,8 @@ const shipDatabase = {
     { "model": "3bis", "mcr": 36, "tons": 3, "cpu_capacity": 10, "storage_capacity": 0, "tl": "A" },
     { "model": "4", "mcr": 30, "tons": 4, "cpu_capacity": 8, "storage_capacity": 15, "tl": "A" },
     { "model": "5", "mcr": 45, "tons": 5, "cpu_capacity": 12, "storage_capacity": 25, "tl": "B" },
-    { "model": "6", "mcr": 55, "tons": 7, "cpu_capacity": 15, "storage_capacity": 35, "tl": "C" }
-    { "model": "7", "mcr": 80, "tons": 9, "cpu_capacity": 20, "storage_capacity": 50, "tl": "D" },
+    { "model": "6", "mcr": 55, "tons": 7, "cpu_capacity": 15, "storage_capacity": 35, "tl": "C" },
+    { "model": "7", "mcr": 80, "tons": 9, "cpu_capacity": 20, "storage_capacity": 50, "tl": "D" }
   ],
   "drive_potential_by_tonnage": [
     { "hull_tons": 100, "drive_letter_to_level_mapping": { "A": 2, "B": 4, "C": 6 } },
@@ -109,24 +109,24 @@ const shipDatabase = {
   ],
   "armament": {
     "mounts": [
-      { "item": "Hardpoint", "mass_tons": 1, "cost_mcr": 100000, "description": "Requires one ton for fire control" },
-      { "item": "Single Turret", "mass_tons": null, "cost_mcr": 200000 },
-      { "item": "Double Turret", "mass_tons": null, "cost_mcr": 500000 },
-      { "item": "Triple Turret", "mass_tons": null, "cost_mcr": 1000000 }
+      { "item": "Hardpoint", "mass_tons": 1, "cost_mcr": 0.1, "description": "Requires one ton for fire control" },
+      { "item": "Single Turret", "mass_tons": null, "cost_mcr": 0.2 },
+      { "item": "Double Turret", "mass_tons": null, "cost_mcr": 0.5 },
+      { "item": "Triple Turret", "mass_tons": null, "cost_mcr": 1 }
     ],
     "weapons": [
-      { "item": "Pulse Laser", "mass_tons": null, "cost_mcr": 1000000 },
-      { "item": "Beam Laser", "mass_tons": null, "cost_mcr": 1000000 },
-      { "item": "Missile Rack", "mass_tons": null, "cost_mcr": 750000 },
-      { "item": "Sandcaster", "mass_tons": null, "cost_mcr": 250000 }
+      { "item": "Pulse Laser", "mass_tons": null, "cost_mcr": 0.5 },
+      { "item": "Beam Laser", "mass_tons": null, "cost_mcr": 1 },
+      { "item": "Missile Rack", "mass_tons": null, "cost_mcr": 0.75 },
+      { "item": "Sandcaster", "mass_tons": null, "cost_mcr": 0.25 }
     ]
   },
   "fittings": [
-    { "item": "Stateroom", "mass_tons": 4, "cost_mcr": 500000 },
-    { "item": "Low Berth", "mass_tons": 0.5, "cost_mcr": 50000 },
-    { "item": "Emergency Low Berth", "mass_tons": 1, "cost_mcr": 100000 },
-    { "item": "Small Craft Stateroom", "mass_tons": 2, "cost_mcr": 50000 },
-    { "item": "Small Craft Couch", "mass_tons": 0.5, "cost_mcr": 25000 },
+    { "item": "Stateroom", "mass_tons": 4, "cost_mcr": 0.5 },
+    { "item": "Low Berth", "mass_tons": 0.5, "cost_mcr": 0.05 },
+    { "item": "Emergency Low Berth", "mass_tons": 1, "cost_mcr": 0.1 },
+    { "item": "Small Craft Stateroom", "mass_tons": 2, "cost_mcr": 0.05 },
+    { "item": "Small Craft Couch", "mass_tons": 0.5, "cost_mcr": 0.025 },
     { "item": "Cargo", "mass_tons": "as required", "cost_mcr": "as required" },
     { "item": "Fuel", "mass_tons": "as required", "cost_mcr": "as required" }
   ],
@@ -149,8 +149,6 @@ const crewRequirements = {
 };
 
 const getComponent = (list, key, value) => list.find(item => item[key] == value);
-
-const crToMcr = (costCr) => (costCr / 1000000).toFixed(2);
 
 // Access React and ReactDOM from the global scope
 const { useState, useEffect } = React;
@@ -216,33 +214,33 @@ function App() {
 
     if (ship.jump_drive) {
       allocatedMass += ship.jump_drive.mass_tons;
-      totalComponentCostMcr += parseFloat(crToMcr(ship.jump_drive.cost_mcr * 1000000));
+      totalComponentCostMcr += ship.jump_drive.cost_mcr;
     }
     if (ship.maneuver_drive) {
       allocatedMass += ship.maneuver_drive.mass_tons;
-      totalComponentCostMcr += parseFloat(crToMcr(ship.maneuver_drive.cost_mcr * 1000000));
+      totalComponentCostMcr += ship.maneuver_drive.cost_mcr;
     }
     if (ship.power_plant) {
       allocatedMass += ship.power_plant.mass_tons;
-      totalComponentCostMcr += parseFloat(crToMcr(ship.power_plant.cost_mcr * 1000000));
+      totalComponentCostMcr += ship.power_plant.cost_mcr;
     }
 
     if (ship.computer) {
       allocatedMass += ship.computer.tons;
-      totalComponentCostMcr += parseFloat(crToMcr(ship.computer.mcr * 1000000));
+      totalComponentCostMcr += ship.computer.mcr;
     }
 
     const stateroomDetails = shipDatabase.fittings.find(f => f.item === "Stateroom");
     if (stateroomDetails) {
       allocatedMass += stateroomDetails.mass_tons * ship.staterooms;
-      totalComponentCostMcr += parseFloat(crToMcr(stateroomDetails.cost_mcr)) * ship.staterooms;
+      totalComponentCostMcr += stateroomDetails.cost_mcr * ship.staterooms;
     }
 
     // Calculate Low Berth mass and cost
     const lowBerthDetails = shipDatabase.fittings.find(f => f.item === "Low Berth");
     if (lowBerthDetails) {
       const lowBerthMassAdded = lowBerthDetails.mass_tons * ship.low_berths;
-      const lowBerthCostAdded = parseFloat(crToMcr(lowBerthDetails.cost_mcr)) * ship.low_berths;
+      const lowBerthCostAdded = lowBerthDetails.cost_mcr * ship.low_berths;
       allocatedMass += lowBerthMassAdded;
       totalComponentCostMcr += lowBerthCostAdded;
     }
@@ -747,4 +745,5 @@ function App() {
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(<App />);
+
 
