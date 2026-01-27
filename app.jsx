@@ -541,6 +541,8 @@ function App() {
               name="hull_tonnage"
               value={ship.hull_tonnage}
               onChange={handleInputChange}
+              min="0"
+              max="5000"
               className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
             />
           </div>
@@ -770,6 +772,7 @@ function App() {
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(<App />);
+
 
 
 
