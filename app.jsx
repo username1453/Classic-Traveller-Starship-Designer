@@ -515,6 +515,7 @@ function App() {
     cargo_tons: ship.cargo_tons,
     isStreamlined: ship.isStreamlined,
     notes: ship.notes,
+    drive_rating: getDriveRating(ship.hull_tonnage, ship.jump_drive.drive_letter),
     calculated_statistics: {
       hull_cost: stats.hull_cost, 
       allocated_mass: stats.allocated_mass,
@@ -776,6 +777,7 @@ function App() {
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(<App />);
+
 
 
 
