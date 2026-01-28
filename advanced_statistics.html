@@ -17,9 +17,9 @@
 </head>
 <body class="bg-gray-100 text-gray-800 p-4 sm:p-8">
 
-    <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-6 sm:p-10">
-        <div class="relative mb-6 pt-8"> <!-- Added pt-8 here to push content down, creating space for the button -->
-            <h1 class="text-3xl sm:text-4xl font-extrabold text-center text-indigo-600"> <!-- Removed mt-8 from here -->
+    <div class="max-w-7xl mx-auto bg-white rounded-xl shadow-lg p-6 sm:p-10">
+        <div class="relative mb-6 pt-8">
+            <h1 class="text-3xl sm:text-4xl font-extrabold text-center text-indigo-600">
                 Ship Statistics Generator
             </h1>
             <a href="programs.html" class="absolute top-0 right-0 text-indigo-600 hover:text-indigo-800 font-semibold text-sm sm:text-base px-2 py-1 rounded-md bg-indigo-100 hover:bg-indigo-200 transition-colors duration-200">
@@ -30,9 +30,9 @@
             Enter your ship's JSON configuration below and click the button to calculate advanced combat statistics.
         </p>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <!-- Input JSON Section -->
-            <div class="flex flex-col">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Left Column: Input JSON Section -->
+            <div class="flex flex-col lg:col-span-1">
                 <label for="json-input" class="block text-xl font-semibold text-gray-700 mb-2">
                     Ship Configuration JSON
                 </label>
@@ -45,13 +45,41 @@
                 </button>
             </div>
 
-            <!-- Output Statistics Section -->
-            <div class="flex flex-col">
+            <!-- Middle Column: Output Statistics Section -->
+            <div class="flex flex-col lg:col-span-1">
                 <label for="json-output" class="block text-xl font-semibold text-gray-700 mb-2">
                     Derived Statistics (JSON)
                 </label>
                 <textarea id="json-output" rows="15" class="text-json w-full p-4 border border-gray-300 rounded-lg bg-gray-900 text-green-400 focus:outline-none resize-none" readonly></textarea>
                 <div id="message-box" class="mt-4 p-4 rounded-lg text-sm transition-opacity duration-300 opacity-0" role="alert"></div>
+            </div>
+
+            <!-- Right Column: Armor Reference Table -->
+            <div class="flex flex-col lg:col-span-1">
+                <h2 class="text-xl font-semibold text-gray-700 mb-2">Armor Reference</h2>
+                <div class="bg-gray-50 rounded-lg border border-gray-300 p-4 overflow-y-auto max-h-[600px]">
+                    <table class="w-full text-sm">
+                        <thead class="sticky top-0 bg-gray-100 border-b-2 border-gray-300">
+                            <tr>
+                                <th class="text-left py-2 px-2">Grade</th>
+                                <th class="text-right py-2 px-2">Points</th>
+                                <th class="text-right py-2 px-2">Mass (t)</th>
+                                <th class="text-right py-2 px-2">Cost (MCr)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="armor-table-body" class="divide-y divide-gray-200">
+                            <!-- Armor rows will be populated by JavaScript -->
+                        </tbody>
+                    </table>
+                    <div class="mt-4 p-3 bg-blue-50 rounded-md border border-blue-200">
+                        <p class="text-xs text-blue-800">
+                            <strong>Note:</strong> Default armor is free. Only upgrades above default have cost/mass.
+                        </p>
+                        <p class="text-xs text-blue-800 mt-2">
+                            <strong>Military grades:</strong> R-Z are typically not available for civilian purchase.
+                        </p>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -166,17 +194,69 @@
             const addAnotherRoomBtn = document.getElementById('add-another-room-btn');
             const doneAddingRoomsBtn = document.getElementById('done-adding-rooms-btn');
 
-
             // Global variable to store shipData for modal interaction
             let currentShipData = {};
+
+            // Populate armor reference table
+            const populateArmorTable = () => {
+                const armorTableBody = document.getElementById('armor-table-body');
+                const armorData = [
+                    { grade: 'n', points: 2, mass: 0, cost: 0, notes: 'Default for 10-99t' },
+                    { grade: 'A', points: 3, mass: 10, cost: 10 },
+                    { grade: 'B', points: 4, mass: 15, cost: 20, notes: 'Default for 100-300t' },
+                    { grade: 'C', points: 5, mass: 20, cost: 30 },
+                    { grade: 'D', points: 6, mass: 25, cost: 40, notes: 'Default for 400-700t' },
+                    { grade: 'E', points: 7, mass: 30, cost: 50 },
+                    { grade: 'F', points: 8, mass: 35, cost: 60, notes: 'Default for 800-1000t' },
+                    { grade: 'G', points: 9, mass: 40, cost: 70 },
+                    { grade: 'H', points: 10, mass: 45, cost: 80, notes: 'Default for 1000+t' },
+                    { grade: 'J', points: 12, mass: 50, cost: 90 },
+                    { grade: 'K', points: 14, mass: 55, cost: 100 },
+                    { grade: 'L', points: 16, mass: 60, cost: 110 },
+                    { grade: 'M', points: 18, mass: 65, cost: 120 },
+                    { grade: 'N', points: 20, mass: 70, cost: 130 },
+                    { grade: 'P', points: 22, mass: 75, cost: 140 },
+                    { grade: 'Q', points: 25, mass: 80, cost: 150 },
+                    { grade: 'R', points: 27, mass: 85, cost: 160, military: true },
+                    { grade: 'S', points: 29, mass: 90, cost: 170, military: true },
+                    { grade: 'T', points: 31, mass: 95, cost: 180, military: true },
+                    { grade: 'U', points: 33, mass: 100, cost: 190, military: true },
+                    { grade: 'V', points: 35, mass: 105, cost: 200, military: true },
+                    { grade: 'W', points: 37, mass: 110, cost: 210, military: true },
+                    { grade: 'X', points: 39, mass: 115, cost: 220, military: true },
+                    { grade: 'Y', points: 41, mass: 120, cost: 230, military: true },
+                    { grade: 'Z', points: 43, mass: 125, cost: 240, military: true }
+                ];
+
+                armorData.forEach(armor => {
+                    const row = document.createElement('tr');
+                    row.className = armor.military ? 'bg-red-50' : (armor.notes ? 'bg-blue-50' : '');
+                    
+                    row.innerHTML = `
+                        <td class="py-2 px-2 font-semibold ${armor.military ? 'text-red-700' : ''}">${armor.grade}${armor.notes ? '*' : ''}</td>
+                        <td class="py-2 px-2 text-right">${armor.points}</td>
+                        <td class="py-2 px-2 text-right">${armor.mass}</td>
+                        <td class="py-2 px-2 text-right">${armor.cost}</td>
+                    `;
+                    
+                    if (armor.notes) {
+                        row.title = armor.notes;
+                    }
+                    
+                    armorTableBody.appendChild(row);
+                });
+            };
+
+            // Call the function to populate the table on page load
+            populateArmorTable();
 
             // Set the default JSON input with the user's example
             jsonInput.value = JSON.stringify({
                 "hull_tonnage": 100,
                 "jump_drive": {
                     "drive_letter": "A",
-                    "mass_tons": null, // Will be calculated by rules.jDriveStats
-                    "cost_mcr": null, // Will be calculated by rules.jDriveStats
+                    "mass_tons": null,
+                    "cost_mcr": null,
                     "drive_rating": 2
                 },
                 "maneuver_drive": {
@@ -199,13 +279,13 @@
                     "tl": 5
                 },
                 "staterooms": 2,
-                "low_berths": 0, // Added low_berths to default JSON
+                "low_berths": 0,
                 "armament": [],
                 "fuel_tons": 20,
                 "cargo_tons": 36,
                 "isStreamlined": false,
                 "notes": "",
-                "armor": {}, // Explicitly include empty armor object
+                "armor": {},
                 "crew_requirements": [
                     "Pilot",
                     "Engineer"
@@ -213,23 +293,21 @@
                 "bridge_skills": [],
                 "gunner_skills": [],
                 "programs": [],
-                "additional_rooms": [] // New field for additional rooms
+                "additional_rooms": []
             }, null, 2);
 
             const displayMessage = (message, type = 'info') => {
                 messageBox.textContent = message;
-                messageBox.className = `mt-4 p-4 rounded-lg text-sm opacity-100 ${ // Ensure opacity-100
+                messageBox.className = `mt-4 p-4 rounded-lg text-sm opacity-100 ${
                     type === 'error' ? 'bg-red-100 text-red-700' :
                     type === 'warning' ? 'bg-yellow-100 text-yellow-700' :
                     'bg-green-100 text-green-700'
                 }`;
-                // Message stays visible until next clearMessage call
             };
 
             const clearMessage = () => {
-                messageBox.textContent = ''; // Clear content
-                messageBox.className = 'mt-4 p-4 rounded-lg text-sm opacity-0'; // Reset to hidden and transparent
-                // No setTimeout here, message stays until next calculation or refresh
+                messageBox.textContent = '';
+                messageBox.className = 'mt-4 p-4 rounded-lg text-sm opacity-0';
             };
 
             // Helper to get nested value
@@ -250,16 +328,16 @@
                 current[parts[parts.length - 1]] = value;
             };
 
-            const showModal = (modalElement, missingFields = []) => { // Added missingFields parameter
-                const modalInputsDiv = modalElement.querySelector('#modal-inputs'); // Select within the specific modal
+            const showModal = (modalElement, missingFields = []) => {
+                const modalInputsDiv = modalElement.querySelector('#modal-inputs');
                 if (!modalInputsDiv) {
                     console.error('Modal input container not found for:', modalElement.id);
                     return;
                 }
-                modalInputsDiv.innerHTML = ''; // Clear previous inputs
+                modalInputsDiv.innerHTML = '';
 
                 if (modalElement.id === 'missing-data-modal') {
-                    console.log('Preparing missing data modal for fields:', missingFields); // New debug log
+                    console.log('Preparing missing data modal for fields:', missingFields);
 
                     const missingListContainer = document.createElement('div');
                     missingListContainer.className = 'mb-4';
@@ -277,14 +355,13 @@
                         missingList.appendChild(listItem);
                     });
                     missingListContainer.appendChild(missingList);
-                    modalInputsDiv.appendChild(missingListContainer); // Add the list to the modal
+                    modalInputsDiv.appendChild(missingListContainer);
 
                     missingFields.forEach(field => {
-                        console.log(`Dynamically creating input for: ${field}`); // New debug log
-                        let labelText = field.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()); // Format field name
-                        let inputType = 'text'; // Default input type
+                        console.log(`Dynamically creating input for: ${field}`);
+                        let labelText = field.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                        let inputType = 'text';
 
-                        // Determine input type based on field name
                         if (field.includes('tonnage') || field.includes('mass') || field.includes('cost') || field.includes('staterooms') || field.includes('capacity') || field.includes('tl') || field.includes('rating') || field.includes('berths')) {
                             inputType = 'number';
                         } else if (field.includes('isStreamlined')) {
@@ -305,9 +382,8 @@
                         input.id = `modal-input-${field}`;
                         input.name = field;
                         input.className = 'p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500';
-                        input.required = true; // Make all prompted fields required
+                        input.required = true;
 
-                        // Set default values if available in currentShipData
                         let value = getNestedValue(currentShipData, field);
                         if (value !== undefined && value !== null) {
                             if (inputType === 'checkbox') {
@@ -319,16 +395,14 @@
 
                         inputGroup.appendChild(input);
                         modalInputsDiv.appendChild(inputGroup);
-                        console.log(`Input created and appended for: ${field}`); // New debug log
+                        console.log(`Input created and appended for: ${field}`);
                     });
                 }
 
                 modalElement.classList.remove('hidden');
-                // Ensure the modal is on top
-                modalElement.style.zIndex = '1000'; // High z-index
+                modalElement.style.zIndex = '1000';
                 console.log('Modal visibility set to true for:', modalElement.id);
             };
-
 
             const hideModal = (modalElement) => {
                 modalElement.classList.add('hidden');
@@ -346,7 +420,7 @@
                         value = parseFloat(input.value);
                         if (isNaN(value)) {
                             allFilled = false;
-                            input.classList.add('border-red-500'); // Highlight missing
+                            input.classList.add('border-red-500');
                         } else {
                             input.classList.remove('border-red-500');
                             setNestedValue(currentShipData, input.name, value);
@@ -354,11 +428,11 @@
                     } else if (input.type === 'checkbox') {
                         value = input.checked;
                         setNestedValue(currentShipData, input.name, value);
-                    } else { // text
+                    } else {
                         value = input.value.trim();
                         if (value === '') {
                             allFilled = false;
-                            input.classList.add('border-red-500'); // Highlight missing
+                            input.classList.add('border-red-500');
                         } else {
                             input.classList.remove('border-red-500');
                             setNestedValue(currentShipData, input.name, value);
@@ -368,8 +442,8 @@
 
                 if (allFilled) {
                     hideModal(missingDataModal);
-                    jsonInput.value = JSON.stringify(currentShipData, null, 2); // Update main input
-                    calculateStatistics(); // Re-run calculation with updated data
+                    jsonInput.value = JSON.stringify(currentShipData, null, 2);
+                    calculateStatistics();
                 } else {
                     displayMessage('Please fill in all required fields.', 'error');
                 }
@@ -414,24 +488,21 @@
 
             doneAddingRoomsBtn.addEventListener('click', () => {
                 if (roomNameInput.value.trim() !== '' || !isNaN(parseFloat(roomTonnageInput.value))) {
-                    addRoom(); // Add the last room if fields are not empty
+                    addRoom();
                 }
                 hideModal(addRoomModal);
-                jsonInput.value = JSON.stringify(currentShipData, null, 2); // Update main JSON
-                calculateStatistics(); // Recalculate with new rooms
+                jsonInput.value = JSON.stringify(currentShipData, null, 2);
+                calculateStatistics();
             });
-
 
             // Define the lookup tables and rules
             const rules = {
-                // M-Drive Speed table
                 mDriveSpeed: (tonnage, driveLetter) => {
                     const letterMap = { 'A': 1, 'B': 2, 'C': 3, 'D': 4, 'E': 5, 'F': 6 };
                     const speedValue = letterMap[driveLetter];
                     return speedValue !== undefined ? speedValue : 0;
                 },
 
-                // A-Maneuver DM table
                 aManeuverDM: (tonnage) => {
                     if (tonnage >= 10 && tonnage <= 19) return "+2";
                     if (tonnage >= 20 && tonnage <= 39) return "+1";
@@ -441,7 +512,6 @@
                     return "--";
                 },
 
-                // Turn Radius table
                 turnRadius: (tonnage, driveLetter) => {
                     const letterMap = { 'A': 0, 'B': 1, 'C': 2, 'D': 3, 'E': 4, 'F': 5 };
                     const trTable = {
@@ -475,7 +545,6 @@
                     return "--";
                 },
 
-                // Default armor letter based on tonnage
                 defaultArmor: (tonnage) => {
                     if (tonnage >= 10 && tonnage <= 99) return 'n';
                     if (tonnage >= 100 && tonnage <= 300) return 'B';
@@ -485,7 +554,6 @@
                     return null;
                 },
                 
-                // Armor points from letter grade
                 armorPoints: (armorLetter) => {
                     const armorMap = {
                         'n': 2, 'A': 3, 'B': 4, 'C': 5, 'D': 6, 'E': 7, 'F': 8,
@@ -496,17 +564,13 @@
                     return armorMap[armorLetter] || 'NA';
                 },
 
-                // Get numerical index for armor grades for comparison
                 getArmorGradeIndex: (armorLetter) => {
                     const gradeOrder = ['n', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'J', 'K', 'L', 'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
                     return gradeOrder.indexOf(armorLetter.toUpperCase());
                 },
 
-                // Mass and Cost calculation for armor grades (base values for each letter)
-                // This function provides the *base* mass and cost for a given armor letter
-                // 'n' is explicitly handled to return 0 for base values.
                 armorStatsBaseValue: (armorLetter) => {
-                    if (armorLetter.toUpperCase() === 'N') { // 'n' grade
+                    if (armorLetter.toUpperCase() === 'N') {
                         return { cost_mcr: 0, mass_tons: 0 };
                     }
                     const letterMap = { 
@@ -522,11 +586,9 @@
                             mass_tons: 10 + (index * 5)
                         };
                     }
-                    // For invalid letters, return 0 for base values
                     return { cost_mcr: 0, mass_tons: 0 };
                 },
 
-                // Cost and mass rules for J-Drive based on user clarifications
                 jDriveStats: (driveLetter) => {
                     const letterMap = { 'A': 0, 'B': 1, 'C': 2, 'D': 3, 'E': 4, 'F': 5 };
                     const index = letterMap[driveLetter.toUpperCase()] !== undefined ? letterMap[driveLetter.toUpperCase()] : -1;
@@ -540,41 +602,36 @@
                 }
             };
             
-            // Corrected static component costs based on user's expected allocated_mass
             const staticComponentCosts = {
-                'bridge_mass': 20.00, // Corrected to 20.00 as per user's latest breakdown
-                'bridge_cost': 0.50, // Remains the same
-                'stateroom_mass': 4, // Corrected to 4 (4 tons per stateroom)
-                'stateroom_cost': 0.25, // Remains the same
-                'hardpoint_mass_per_unit': 1 // Added for future armament calculations
+                'bridge_mass': 20.00,
+                'bridge_cost': 0.50,
+                'stateroom_mass': 4,
+                'stateroom_cost': 0.25,
+                'hardpoint_mass_per_unit': 1
             };
 
             const calculateStatistics = () => {
-                clearMessage(); // Clear previous messages at the start of a new calculation
+                clearMessage();
                 try {
                     currentShipData = JSON.parse(jsonInput.value);
                     const hullTonnage = currentShipData.hull_tonnage;
 
-                    // --- ADD MISSING BLANK VARIABLES IF NOT PRESENT AND CHECK FOR REQUIRED FIELDS ---
                     if (!currentShipData.bridge_skills) currentShipData.bridge_skills = [];
                     if (!currentShipData.gunner_skills) currentShipData.gunner_skills = [];
                     if (!currentShipData.programs) currentShipData.programs = [];
-                    if (!currentShipData.additional_rooms) currentShipData.additional_rooms = []; // Initialize additional_rooms
-                    if (!currentShipData.armor) currentShipData.armor = { "armor_letter": null }; // Initialize armor object if missing
+                    if (!currentShipData.additional_rooms) currentShipData.additional_rooms = [];
+                    if (!currentShipData.armor) currentShipData.armor = { "armor_letter": null };
                     if (!currentShipData.jump_drive) currentShipData.jump_drive = { "drive_letter": null, "mass_tons": null, "cost_mcr": null, "drive_rating": null };
                     if (!currentShipData.maneuver_drive) currentShipData.maneuver_drive = { "drive_letter": null, "mass_tons": null, "cost_mcr": null, "drive_rating": null };
                     if (!currentShipData.power_plant) currentShipData.power_plant = { "drive_letter": null, "mass_tons": null, "cost_mcr": null };
                     if (!currentShipData.computer) currentShipData.computer = { "model": null, "mcr": null, "tons": null, "cpu_capacity": null, "storage_capacity": null, "tl": null };
                     if (currentShipData.staterooms === undefined || currentShipData.staterooms === null) currentShipData.staterooms = 0;
                     if (currentShipData.fuel_tons === undefined || currentShipData.fuel_tons === null) currentShipData.fuel_tons = 0;
-                    if (currentShipData.low_berths === undefined || currentShipData.low_berths === null) currentShipData.low_berths = 0; // Initialize low_berths
-                    // Preserve original cargo_tons for potential reduction
+                    if (currentShipData.low_berths === undefined || currentShipData.low_berths === null) currentShipData.low_berths = 0;
                     const originalCargoTons = currentShipData.cargo_tons === undefined || currentShipData.cargo_tons === null ? 0 : currentShipData.cargo_tons;
-
 
                     const missingFields = [];
 
-                    // Define required fields and their paths
                     const requiredFields = [
                         'hull_tonnage',
                         'jump_drive.drive_letter',
@@ -585,9 +642,9 @@
                         'computer.model',
                         'staterooms',
                         'fuel_tons',
-                        'cargo_tons', // Still required as initial input
+                        'cargo_tons',
                         'armor.armor_letter',
-                        'low_berths' // Added low_berths to required fields
+                        'low_berths'
                     ];
 
                     requiredFields.forEach(field => {
@@ -599,23 +656,21 @@
 
                     if (missingFields.length > 0) {
                         displayMessage('Some required ship data is missing. Please provide it.', 'warning');
-                        console.log('Missing fields detected:', missingFields); // Debug log
-                        showModal(missingDataModal, missingFields); // Pass missingFields to showModal
-                        return; // Stop calculation until modal is filled
+                        console.log('Missing fields detected:', missingFields);
+                        showModal(missingDataModal, missingFields);
+                        return;
                     } else {
-                        console.log('No missing fields detected. Proceeding with calculation.'); // Debug log
+                        console.log('No missing fields detected. Proceeding with calculation.');
                     }
 
-                    // --- DERIVED STATS ---
                     const derivedStats = {
                         'aManeuverDM': rules.aManeuverDM(hullTonnage),
                         'turnRadius': rules.turnRadius(hullTonnage, currentShipData.maneuver_drive.drive_letter),
                         'speedHexes': rules.mDriveSpeed(hullTonnage, currentShipData.maneuver_drive.drive_letter),
-                        'jump_drive_rating': currentShipData.jump_drive.drive_rating, // Bring forward
-                        'maneuver_drive_rating': currentShipData.maneuver_drive.drive_rating, // Bring forward
+                        'jump_drive_rating': currentShipData.jump_drive.drive_rating,
+                        'maneuver_drive_rating': currentShipData.maneuver_drive.drive_rating,
                     };
 
-                    // --- ARMOR CALCULATION ---
                     const defaultArmorLetter = rules.defaultArmor(hullTonnage);
                     let armorLetter = currentShipData.armor?.armor_letter;
 
@@ -633,124 +688,100 @@
                         const chosenArmorIndex = rules.getArmorGradeIndex(armorLetter);
                         const defaultArmorIndex = rules.getArmorGradeIndex(defaultArmorLetter);
 
-                        // Apply cost/mass only if chosen armor is strictly higher grade than default
                         if (chosenArmorIndex > defaultArmorIndex) {
                              const chosenArmorBaseStats = rules.armorStatsBaseValue(armorLetter);
                              const defaultArmorBaseStats = rules.armorStatsBaseValue(defaultArmorLetter); 
 
-                             // Armor mass is the difference from the default armor's "upgrade" mass
                              armorMass = chosenArmorBaseStats.mass_tons - defaultArmorBaseStats.mass_tons;
-                             armorCost = chosenArmorBaseStats.cost_mcr; // Cost is always the full value of the chosen upgrade
+                             armorCost = chosenArmorBaseStats.cost_mcr;
 
                              if (['R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'].includes(armorLetter)) {
                                 displayMessage(`Warning: Armor grade '${armorLetter}' is typically military/experimental and not available for purchase.`, 'warning');
                              }
                         }
-                        // If chosenArmorIndex <= defaultArmorIndex, armorMass and armorCost remain 0, which is correct.
                     }
                     currentShipData.armor.armor_mass = armorMass;
                     currentShipData.armor.armor_cost = armorCost;
                     
-                    // --- RECALCULATED COSTS AND MASSES ---
                     const jDriveStats = rules.jDriveStats(currentShipData.jump_drive.drive_letter);
                     const jDriveCost = jDriveStats.cost_mcr;
                     const jDriveMass = jDriveStats.mass_tons;
 
-                    // Update J-drive based on new rules
                     currentShipData.jump_drive.mass_tons = jDriveMass;
                     currentShipData.jump_drive.cost_mcr = jDriveCost;
                     
-                    // Calculate total costs
                     let totalComponentCost = 0;
 
-                    // Add costs from drives, power plant, and computer
                     totalComponentCost += currentShipData.jump_drive.cost_mcr;
                     totalComponentCost += currentShipData.maneuver_drive.cost_mcr;
                     totalComponentCost += currentShipData.power_plant.cost_mcr;
                     totalComponentCost += currentShipData.computer.mcr;
                     
-                    // Add bridge, staterooms costs
                     totalComponentCost += staticComponentCosts.bridge_cost;
                     totalComponentCost += currentShipData.staterooms * staticComponentCosts.stateroom_cost;
 
-                    // Add armor cost
                     totalComponentCost += armorCost;
 
-                    // Initialize armamentMass here to ensure it's always defined
                     const armamentMass = currentShipData.armament.length * staticComponentCosts.hardpoint_mass_per_unit;
 
-                    // --- CARGO SPACE AND ALLOCATED MASS LOGIC ---
-                    // Calculate total mass of all components *excluding cargo*
                     let componentsMassExcludingCargo = 0;
-                    componentsMassExcludingCargo += jDriveMass; // J-Drive mass
-                    componentsMassExcludingCargo += currentShipData.maneuver_drive.mass_tons; // M-Drive mass
-                    componentsMassExcludingCargo += currentShipData.power_plant.mass_tons; // Power Plant mass
-                    componentsMassExcludingCargo += currentShipData.computer.tons; // Computer mass
-                    componentsMassExcludingCargo += staticComponentCosts.bridge_mass; // Bridge mass
-                    componentsMassExcludingCargo += currentShipData.staterooms * staticComponentCosts.stateroom_mass; // Stateroom mass
-                    componentsMassExcludingCargo += currentShipData.low_berths * 1; // Low berths mass (1 ton each)
-                    componentsMassExcludingCargo += currentShipData.fuel_tons; // Fuel mass
-                    componentsMassExcludingCargo += armamentMass; // Armament mass (now correctly defined)
-                    componentsMassExcludingCargo += armorMass; // Calculated armor mass
+                    componentsMassExcludingCargo += jDriveMass;
+                    componentsMassExcludingCargo += currentShipData.maneuver_drive.mass_tons;
+                    componentsMassExcludingCargo += currentShipData.power_plant.mass_tons;
+                    componentsMassExcludingCargo += currentShipData.computer.tons;
+                    componentsMassExcludingCargo += staticComponentCosts.bridge_mass;
+                    componentsMassExcludingCargo += currentShipData.staterooms * staticComponentCosts.stateroom_mass;
+                    componentsMassExcludingCargo += currentShipData.low_berths * 1;
+                    componentsMassExcludingCargo += currentShipData.fuel_tons;
+                    componentsMassExcludingCargo += armamentMass;
+                    componentsMassExcludingCargo += armorMass;
                     
-                    // Add additional room tonnage
                     if (currentShipData.additional_rooms && currentShipData.additional_rooms.length > 0) {
                         currentShipData.additional_rooms.forEach(room => {
                             componentsMassExcludingCargo += room.tonnage;
                         });
                     }
 
-                    // Calculate the available space for cargo
                     let availableCargoSpace = hullTonnage - componentsMassExcludingCargo;
 
                     let finalCalculatedCargoTons;
                     let finalAllocatedMass;
 
                     if (availableCargoSpace < 0) {
-                        // Components alone exceed hull tonnage
                         finalCalculatedCargoTons = 0;
-                        finalAllocatedMass = hullTonnage; // Allocated mass is capped at hull tonnage
+                        finalAllocatedMass = hullTonnage;
                         displayMessage(`Critical Warning: Ship components (${componentsMassExcludingCargo.toFixed(2)} tons) exceed hull tonnage (${hullTonnage} tons). No cargo space available.`, 'error');
                     } else {
-                        // There is space available for cargo
                         finalCalculatedCargoTons = availableCargoSpace;
-                        finalAllocatedMass = hullTonnage; // The ship is fully allocated (components + cargo)
+                        finalAllocatedMass = hullTonnage;
                     }
 
-                    // If the user specified an original cargo_tons, and it was higher than the calculated available space,
-                    // issue a warning. The actual cargo will be capped at finalCalculatedCargoTons.
                     if (originalCargoTons > finalCalculatedCargoTons) {
                          displayMessage(`Warning: Specified cargo (${originalCargoTons} tons) exceeds available hull space. Cargo capped at ${finalCalculatedCargoTons.toFixed(2)} tons.`, 'warning');
                     }
 
-                    // Update the main cargo_tons field in shipData to reflect the calculated value
                     currentShipData.cargo_tons = parseFloat(finalCalculatedCargoTons.toFixed(2));
 
-
-                    // Prepare the final calculated_statistics object
                     currentShipData.calculated_statistics = {
-                        ...currentShipData.calculated_statistics, // preserve any existing data
+                        ...currentShipData.calculated_statistics,
                         allocated_mass: parseFloat(finalAllocatedMass.toFixed(2)),
-                        total_component_cost: parseFloat(totalComponentCost.toFixed(2)), // Keep as float
-                        design_cost: parseFloat(currentShipData.calculated_statistics?.design_cost || 0.00), // Carry forward or default
-                        streamlining_cost: parseFloat(currentShipData.calculated_statistics?.streamlining_cost || 0.00), // Carry forward or default
-                        total_final_cost: parseFloat((totalComponentCost + parseFloat(currentShipData.calculated_statistics?.design_cost || 0.00) + parseFloat(currentShipData.calculated_statistics?.streamlining_cost || 0.00)).toFixed(2)), // Sum as float
+                        total_component_cost: parseFloat(totalComponentCost.toFixed(2)),
+                        design_cost: parseFloat(currentShipData.calculated_statistics?.design_cost || 0.00),
+                        streamlining_cost: parseFloat(currentShipData.calculated_statistics?.streamlining_cost || 0.00),
+                        total_final_cost: parseFloat((totalComponentCost + parseFloat(currentShipData.calculated_statistics?.design_cost || 0.00) + parseFloat(currentShipData.calculated_statistics?.streamlining_cost || 0.00)).toFixed(2)),
                         bridge_mass: staticComponentCosts.bridge_mass,
                         bridge_cost: staticComponentCosts.bridge_cost,
-                        // Add derived combat stats
                         ...derivedStats,
                         armor_points: armorPoints,
                         armor_mass: armorMass,
                         armor_cost: armorCost,
-                        armament_mass: armamentMass, // Add armament mass to calculated stats
-                        calculated_cargo_tons: parseFloat(finalCalculatedCargoTons.toFixed(2)) // New calculated cargo
+                        armament_mass: armamentMass,
+                        calculated_cargo_tons: parseFloat(finalCalculatedCargoTons.toFixed(2))
                     };
 
-                    // --- DISPLAY OUTPUT ---
                     jsonOutput.value = JSON.stringify(currentShipData, null, 2);
                     displayMessage('Statistics calculated successfully!', 'success');
                     
-                    // Update the summary section - apply toFixed(2) for display only
                     document.getElementById('summary-a-maneuver').textContent = derivedStats.aManeuverDM;
                     document.getElementById('summary-turn-radius').textContent = derivedStats.turnRadius;
                     document.getElementById('summary-speed').textContent = derivedStats.speedHexes;
