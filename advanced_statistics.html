@@ -19,6 +19,9 @@
 
     <div class="max-w-7xl mx-auto bg-white rounded-xl shadow-lg p-6 sm:p-10">
         <div class="relative mb-6 pt-8">
+            <a href="/" class="absolute top-0 left-0 text-indigo-600 hover:text-indigo-800 font-semibold text-sm sm:text-base px-2 py-1 rounded-md bg-indigo-100 hover:bg-indigo-200 transition-colors duration-200">
+                Start Over
+            </a>
             <h1 class="text-3xl sm:text-4xl font-extrabold text-center text-indigo-600">
                 Ship Statistics Generator
             </h1>
@@ -518,10 +521,11 @@
                         '10-39': [3, 2, 1, 'X', 'X', 'X'],
                         '40-99': [6, 3, 2, 'X', 'X', 'X'],
                         '100-199': [12, 6, 4, 'X', 'X', 'X'],
-                        '200-299': [24, 12, 8, 6, 5, 5],
+                        '200-399': [24, 12, 8, 6, 5, 5],
+                        '400-599': ['X', 24, 24, 12, 8, 6],
+                        '600-799': ['X', 'X', 24, 24, 24, 12],
                     };
                     const letterIndex = letterMap[driveLetter];
-
                     if (tonnage >= 10 && tonnage <= 39 && letterIndex !== undefined) {
                         return trTable['10-39'][letterIndex];
                     }
@@ -531,18 +535,19 @@
                     if (tonnage >= 100 && tonnage <= 199 && letterIndex !== undefined) {
                         return trTable['100-199'][letterIndex];
                     }
-                    if (tonnage >= 200 && tonnage <= 299 && letterIndex !== undefined) {
-                        return trTable['200-299'][letterIndex];
+                    if (tonnage >= 200 && tonnage <= 399 && letterIndex !== undefined) {
+                        return trTable['200-399'][letterIndex];
                     }
-                    if (tonnage >= 300) {
-                        const letterValue = letterMap[driveLetter] + 1;
-                        if (letterValue === 1) return 24;
-                        if (letterValue === 2) return 12;
-                        if (letterValue === 3) return 8;
-                        if (letterValue === 4) return 6;
-                        if (letterValue >= 5) return 5;
+                    if (tonnage >= 400 && tonnage <= 599 && letterIndex !== undefined) {
+                        return trTable['400-599'][letterIndex];
                     }
-                    return "--";
+                    if (tonnage >= 600 && tonnage <= 799 && letterIndex !== undefined) {
+                        return trTable['600-799'][letterIndex];
+                    }
+                    if (tonnage >= 800) {
+                        return 24;  // Number, not string
+                    }
+                    return "--";  // Fallback
                 },
 
                 defaultArmor: (tonnage) => {
@@ -557,9 +562,9 @@
                 armorPoints: (armorLetter) => {
                     const armorMap = {
                         'n': 2, 'A': 3, 'B': 4, 'C': 5, 'D': 6, 'E': 7, 'F': 8,
-                        'G': 9, 'H': 10, 'J': 12, 'K': 14, 'L': 16, 'M': 18,
-                        'N': 20, 'P': 22, 'Q': 25, 'R': 27, 'S': 29, 'T': 31,
-                        'U': 33, 'V': 35, 'W': 37, 'X': 39, 'Y': 41, 'Z': 43
+                        'G': 9, 'H': 10, 'J': 12, 'K': 15, 'L': 20, 'M': 25,
+                        'N': 30, 'P': 40, 'Q': 50, 'R': 60, 'T': 80,
+                        'U': 100, 'V': 120, 'W': 140, 'X': 160, 'Y': 180, 'Z': 200
                     };
                     return armorMap[armorLetter] || 'NA';
                 },
@@ -782,3 +787,4 @@
     </script>
 </body>
 </html>
+
