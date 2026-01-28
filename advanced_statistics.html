@@ -19,6 +19,9 @@
 
     <div class="max-w-7xl mx-auto bg-white rounded-xl shadow-lg p-6 sm:p-10">
         <div class="relative mb-6 pt-8">
+            <a href="/" class="absolute top-0 left-0 text-indigo-600 hover:text-indigo-800 font-semibold text-sm sm:text-base px-2 py-1 rounded-md bg-indigo-100 hover:bg-indigo-200 transition-colors duration-200">
+                Start Over
+            </a>
             <h1 class="text-3xl sm:text-4xl font-extrabold text-center text-indigo-600">
                 Ship Statistics Generator
             </h1>
@@ -703,12 +706,16 @@
                     currentShipData.armor.armor_mass = armorMass;
                     currentShipData.armor.armor_cost = armorCost;
                     
-                    const jDriveStats = rules.jDriveStats(currentShipData.jump_drive.drive_letter);
-                    const jDriveCost = jDriveStats.cost_mcr;
-                    const jDriveMass = jDriveStats.mass_tons;
-
-                    currentShipData.jump_drive.mass_tons = jDriveMass;
-                    currentShipData.jump_drive.cost_mcr = jDriveCost;
+                    // CRITICAL FIX: Only calculate jump drive stats if they're missing
+                    // Never overwrite user-provided values
+                    if (currentShipData.jump_drive.mass_tons === null || currentShipData.jump_drive.mass_tons === undefined) {
+                        const jDriveStats = rules.jDriveStats(currentShipData.jump_drive.drive_letter);
+                        currentShipData.jump_drive.mass_tons = jDriveStats.mass_tons;
+                    }
+                    if (currentShipData.jump_drive.cost_mcr === null || currentShipData.jump_drive.cost_mcr === undefined) {
+                        const jDriveStats = rules.jDriveStats(currentShipData.jump_drive.drive_letter);
+                        currentShipData.jump_drive.cost_mcr = jDriveStats.cost_mcr;
+                    }
                     
                     let totalComponentCost = 0;
 
@@ -725,7 +732,7 @@
                     const armamentMass = currentShipData.armament.length * staticComponentCosts.hardpoint_mass_per_unit;
 
                     let componentsMassExcludingCargo = 0;
-                    componentsMassExcludingCargo += jDriveMass;
+                    componentsMassExcludingCargo += currentShipData.jump_drive.mass_tons;
                     componentsMassExcludingCargo += currentShipData.maneuver_drive.mass_tons;
                     componentsMassExcludingCargo += currentShipData.power_plant.mass_tons;
                     componentsMassExcludingCargo += currentShipData.computer.tons;
