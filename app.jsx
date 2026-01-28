@@ -457,29 +457,43 @@ function App() {
   };
 
   const handleExport = () => {
-    // Create new drive objects with the drive_rating added
-    const jumpDriveWithRating = {
-      ...ship.jump_drive,
-      drive_rating: getDriveRating(ship.hull_tonnage, ship.jump_drive.drive_letter)
-    };
-    const maneuverDriveWithRating = {
-      ...ship.maneuver_drive,
-      drive_rating: getDriveRating(ship.hull_tonnage, ship.maneuver_drive.drive_letter)
-    };
-
-    // Construct the final ship object with the new drive objects
-    const finalShip = {
-      ...ship,
-      jump_drive: jumpDriveWithRating,
-      maneuver_drive: maneuverDriveWithRating,
+    // Use the EXACT same structure as currentShipJson
+    const exportData = {
+      hull_tonnage: ship.hull_tonnage,
+      jump_drive: {
+        ...ship.jump_drive,
+        drive_rating: getDriveRating(ship.hull_tonnage, ship.jump_drive.drive_letter)
+      },
+      maneuver_drive: {
+        ...ship.maneuver_drive,
+        drive_rating: getDriveRating(ship.hull_tonnage, ship.maneuver_drive.drive_letter)
+      },
+      power_plant: ship.power_plant,
+      computer: ship.computer,
+      staterooms: ship.staterooms,
+      low_berths: ship.low_berths,
+      armament: ship.armament,
+      fuel_tons: ship.fuel_tons,
+      cargo_tons: ship.cargo_tons,
+      isStreamlined: ship.isStreamlined,
+      notes: ship.notes,
+      fuel_per_jump: `${(0.1 * ship.hull_tonnage * getDriveRating(ship.hull_tonnage, ship.jump_drive.drive_letter)).toFixed(1)} tons`,
       calculated_statistics: {
-        ...stats,
+        hull_cost: stats.hull_cost,
+        allocated_mass: stats.allocated_mass,
+        unallocated_mass: stats.unallocated_mass,
+        total_component_cost: stats.total_component_cost,
+        design_cost: stats.design_cost,
+        streamlining_cost: stats.streamlining_cost,
+        total_final_cost: stats.total_final_cost,
+        bridge_mass: stats.bridge_mass,
+        bridge_cost: stats.bridge_cost,
         cargo_tons: ship.cargo_tons
       },
       crew_requirements: crew
     };
     
-    const jsonString = JSON.stringify(finalShip, null, 2);
+    const jsonString = JSON.stringify(exportData, null, 2);
     const blob = new Blob([jsonString], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -777,6 +791,7 @@ function App() {
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(<App />);
+
 
 
 
