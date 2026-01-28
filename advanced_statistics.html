@@ -19,9 +19,6 @@
 
     <div class="max-w-7xl mx-auto bg-white rounded-xl shadow-lg p-6 sm:p-10">
         <div class="relative mb-6 pt-8">
-            <a href="/Classic-Traveller-Starship-Designer/" class="absolute top-0 left-0 text-indigo-600 hover:text-indigo-800 font-semibold text-sm sm:text-base px-2 py-1 rounded-md bg-indigo-100 hover:bg-indigo-200 transition-colors duration-200">
-                Start Over
-            </a>
             <h1 class="text-3xl sm:text-4xl font-extrabold text-center text-indigo-600">
                 Ship Statistics Generator
             </h1>
@@ -590,26 +587,12 @@
                         };
                     }
                     return { cost_mcr: 0, mass_tons: 0 };
-                },
-
-                jDriveStats: (driveLetter) => {
-                    const letterMap = { 'A': 0, 'B': 1, 'C': 2, 'D': 3, 'E': 4, 'F': 5 };
-                    const index = letterMap[driveLetter.toUpperCase()] !== undefined ? letterMap[driveLetter.toUpperCase()] : -1;
-                    if (index >= 0) {
-                        return {
-                            cost_mcr: 10 + (index * 10),
-                            mass_tons: 10 + (index * 5)
-                        };
-                    }
-                    return { cost_mcr: 0, mass_tons: 0 };
                 }
             };
             
             const staticComponentCosts = {
                 'bridge_mass': 20.00,
-                'bridge_cost': 0.50,
                 'stateroom_mass': 4,
-                'stateroom_cost': 0.25,
                 'hardpoint_mass_per_unit': 1
             };
 
@@ -706,37 +689,21 @@
                     currentShipData.armor.armor_mass = armorMass;
                     currentShipData.armor.armor_cost = armorCost;
                     
-                    // CRITICAL FIX: Only calculate jump drive stats if they're missing
-                    // Never overwrite user-provided values
-                    if (currentShipData.jump_drive.mass_tons === null || currentShipData.jump_drive.mass_tons === undefined) {
-                        const jDriveStats = rules.jDriveStats(currentShipData.jump_drive.drive_letter);
-                        currentShipData.jump_drive.mass_tons = jDriveStats.mass_tons;
-                    }
-                    if (currentShipData.jump_drive.cost_mcr === null || currentShipData.jump_drive.cost_mcr === undefined) {
-                        const jDriveStats = rules.jDriveStats(currentShipData.jump_drive.drive_letter);
-                        currentShipData.jump_drive.cost_mcr = jDriveStats.cost_mcr;
-                    }
-                    
-                    let totalComponentCost = 0;
-
-                    totalComponentCost += currentShipData.jump_drive.cost_mcr;
-                    totalComponentCost += currentShipData.maneuver_drive.cost_mcr;
-                    totalComponentCost += currentShipData.power_plant.cost_mcr;
-                    totalComponentCost += currentShipData.computer.mcr;
-                    
-                    totalComponentCost += staticComponentCosts.bridge_cost;
-                    totalComponentCost += currentShipData.staterooms * staticComponentCosts.stateroom_cost;
-
-                    totalComponentCost += armorCost;
-
+                    // Calculate allocated mass (sum of all components)
                     const armamentMass = currentShipData.armament.length * staticComponentCosts.hardpoint_mass_per_unit;
 
                     let componentsMassExcludingCargo = 0;
-                    componentsMassExcludingCargo += currentShipData.jump_drive.mass_tons;
-                    componentsMassExcludingCargo += currentShipData.maneuver_drive.mass_tons;
-                    componentsMassExcludingCargo += currentShipData.power_plant.mass_tons;
-                    componentsMassExcludingCargo += currentShipData.computer.tons;
-                    componentsMassExcludingCargo += staticComponentCosts.bridge_mass;
+                    
+                    // Only add masses if they exist (user-provided)
+                    if (currentShipData.jump_drive?.mass_tons) componentsMassExcludingCargo += currentShipData.jump_drive.mass_tons;
+                    if (currentShipData.maneuver_drive?.mass_tons) componentsMassExcludingCargo += currentShipData.maneuver_drive.mass_tons;
+                    if (currentShipData.power_plant?.mass_tons) componentsMassExcludingCargo += currentShipData.power_plant.mass_tons;
+                    if (currentShipData.computer?.tons) componentsMassExcludingCargo += currentShipData.computer.tons;
+                    
+                    // Add bridge mass if it exists in calculated_statistics, otherwise use default
+                    const bridgeMass = currentShipData.calculated_statistics?.bridge_mass || staticComponentCosts.bridge_mass;
+                    componentsMassExcludingCargo += parseFloat(bridgeMass);
+                    
                     componentsMassExcludingCargo += currentShipData.staterooms * staticComponentCosts.stateroom_mass;
                     componentsMassExcludingCargo += currentShipData.low_berths * 1;
                     componentsMassExcludingCargo += currentShipData.fuel_tons;
@@ -767,40 +734,43 @@
                          displayMessage(`Warning: Specified cargo (${originalCargoTons} tons) exceeds available hull space. Cargo capped at ${finalCalculatedCargoTons.toFixed(2)} tons.`, 'warning');
                     }
 
-                    currentShipData.cargo_tons = parseFloat(finalCalculatedCargoTons.toFixed(2));
+                    // Preserve existing calculated_statistics, only add/update derived combat stats
+                    if (!currentShipData.calculated_statistics) {
+                        currentShipData.calculated_statistics = {};
+                    }
 
+                    // Add only derived combat/performance statistics
                     currentShipData.calculated_statistics = {
-                        ...currentShipData.calculated_statistics,
-                        allocated_mass: parseFloat(finalAllocatedMass.toFixed(2)),
-                        total_component_cost: parseFloat(totalComponentCost.toFixed(2)),
-                        design_cost: parseFloat(currentShipData.calculated_statistics?.design_cost || 0.00),
-                        streamlining_cost: parseFloat(currentShipData.calculated_statistics?.streamlining_cost || 0.00),
-                        total_final_cost: parseFloat((totalComponentCost + parseFloat(currentShipData.calculated_statistics?.design_cost || 0.00) + parseFloat(currentShipData.calculated_statistics?.streamlining_cost || 0.00)).toFixed(2)),
-                        bridge_mass: staticComponentCosts.bridge_mass,
-                        bridge_cost: staticComponentCosts.bridge_cost,
-                        ...derivedStats,
+                        ...currentShipData.calculated_statistics, // Preserve all existing values
+                        ...derivedStats, // Add combat stats
                         armor_points: armorPoints,
                         armor_mass: armorMass,
                         armor_cost: armorCost,
                         armament_mass: armamentMass,
+                        allocated_mass: parseFloat(finalAllocatedMass.toFixed(2)),
                         calculated_cargo_tons: parseFloat(finalCalculatedCargoTons.toFixed(2))
                     };
 
                     jsonOutput.value = JSON.stringify(currentShipData, null, 2);
                     displayMessage('Statistics calculated successfully!', 'success');
                     
+                    // Update summary displays - use existing values if available
                     document.getElementById('summary-a-maneuver').textContent = derivedStats.aManeuverDM;
                     document.getElementById('summary-turn-radius').textContent = derivedStats.turnRadius;
                     document.getElementById('summary-speed').textContent = derivedStats.speedHexes;
                     document.getElementById('summary-allocated-mass').textContent = currentShipData.calculated_statistics.allocated_mass.toFixed(2);
-                    document.getElementById('summary-total-cost').textContent = currentShipData.calculated_statistics.total_final_cost.toFixed(2);
                     document.getElementById('summary-armor-points').textContent = armorPoints;
                     document.getElementById('summary-armor-mass').textContent = armorMass.toFixed(2);
                     document.getElementById('summary-armor-cost').textContent = armorCost.toFixed(2);
                     document.getElementById('summary-jump-drive-rating').textContent = derivedStats.jump_drive_rating;
                     document.getElementById('summary-maneuver-drive-rating').textContent = derivedStats.maneuver_drive_rating;
-                    document.getElementById('summary-design-cost').textContent = currentShipData.calculated_statistics.design_cost.toFixed(2);
                     document.getElementById('summary-calculated-cargo').textContent = currentShipData.calculated_statistics.calculated_cargo_tons.toFixed(2);
+                    
+                    // Display user-provided values if they exist
+                    const totalCost = currentShipData.calculated_statistics?.total_final_cost;
+                    const designCost = currentShipData.calculated_statistics?.design_cost;
+                    document.getElementById('summary-total-cost').textContent = totalCost ? parseFloat(totalCost).toFixed(2) : '--';
+                    document.getElementById('summary-design-cost').textContent = designCost ? parseFloat(designCost).toFixed(2) : '--';
                 
                 } catch (e) {
                     displayMessage(`Error processing JSON: ${e.message}. Please ensure your JSON is valid.`, 'error');
@@ -812,4 +782,3 @@
     </script>
 </body>
 </html>
-
