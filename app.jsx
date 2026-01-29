@@ -218,9 +218,9 @@ function App() {
     const potentialEntry = shipDatabase.drive_potential_by_tonnage.find(entry => entry.hull_tons >= hullTonnage);
 
     if (potentialEntry) {
-      validLetters = Object.keys(potentialEntry.drive_letter_to_level_mapping);
+      validLetters = ["None", ...Object.keys(potentialEntry.drive_letter_to_level_mapping)];
     } else {
-      validLetters = shipDatabase.drives.jump_drives.map(drive => drive.drive_letter);
+      validLetters = ["None"];
     }
     return validLetters;
   };
@@ -435,8 +435,10 @@ function App() {
   };
   
   const addArmament = () => {
-    if (ship.armament.length >= Math.floor(ship.hull_tonnage / 100)) {
-      setAlertMessage("Cannot add more armament. Hardpoint capacity is limited to one per 100 tons of ship.");
+    const maxHardpoints = ship.hull_tonnage < 100 ? 3 : Math.floor(ship.hull_tonnage / 100);
+    
+    if (ship.armament.length >= maxHardpoints) {
+      setAlertMessage(`Cannot add more armament. Small craft limited to 3 hardpoints, larger ships to one per 100 tons.`);
       setShowAlert(true);
     } else {
       setShip(prev => ({
@@ -453,6 +455,22 @@ function App() {
   };
 
   const handleArmamentChange = (index, name, value) => {
+    if (name === "weapon") {
+      const laserWeapons = ["Pulse Laser", "Beam Laser"];
+      if (ship.hull_tonnage < 100 && laserWeapons.includes(value)) {
+        // Check if another hardpoint already has a laser
+        const hasLaserElsewhere = ship.armament.some((item, i) => 
+          i !== index && laserWeapons.includes(item.weapon)
+        );
+        
+        if (hasLaserElsewhere) {
+          setAlertMessage("Small craft can only mount one laser weapon across all hardpoints.");
+          setShowAlert(true);
+          return; // Don't allow the change
+        }
+      }
+    }
+    
     const newArmament = [...ship.armament];
     newArmament[index][name] = value;
     setShip(prev => ({ ...prev, armament: newArmament }));
@@ -815,6 +833,7 @@ function App() {
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(<App />);
+
 
 
 
