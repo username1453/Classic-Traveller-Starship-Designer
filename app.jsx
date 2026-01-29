@@ -430,35 +430,40 @@ function App() {
   }, [ship.hull_tonnage]);
 
   useEffect(() => {
-    calculateStats();
-    checkCrewRequirements();
-  }, [
-    ship.jump_drive,
-    ship.maneuver_drive,
-    ship.power_plant,
-    ship.computer,
-    ship.staterooms,
-    ship.small_craft_staterooms,
-    ship.small_craft_couches, 
-    ship.low_berths, // Add low_berths to dependencies
-    ship.armament,
-    ship.fuel_tons,
-    ship.isStreamlined
-  ]);
-
-  const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    if (type === "checkbox") {
-      setShip(prev => ({ ...prev, [name]: checked }));
-    } else {
-      // Ensure numerical inputs are not negative and hull_tonnage doesn't exceed 5000
-      let numValue = Math.max(0, parseInt(value) || 0);
-      if (name === "hull_tonnage") {
-        numValue = Math.min(numValue, 5000);
-      }
-      setShip(prev => ({ ...prev, [name]: numValue }));
+    const validDriveLetters = getValidDriveLetters(ship.hull_tonnage);
+    const newShipState = { ...ship };
+    let updated = false;
+  
+    if (!validDriveLetters.includes(newShipState.jump_drive.drive_letter)) {
+      newShipState.jump_drive = shipDatabase.drives.jump_drives.find(d => d.drive_letter === validDriveLetters[0]);
+      updated = true;
     }
-  };
+  
+    if (!validDriveLetters.includes(newShipState.maneuver_drive.drive_letter)) {
+      newShipState.maneuver_drive = shipDatabase.drives.maneuver_drives.find(d => d.drive_letter === validDriveLetters[0]);
+      updated = true;
+    }
+    
+    // Reset small craft accommodations when hull becomes >= 100 tons
+    if (newShipState.hull_tonnage >= 100) {
+      if (newShipState.small_craft_staterooms > 0) {
+        newShipState.small_craft_staterooms = 0;
+        updated = true;
+      }
+      if (newShipState.small_craft_couches > 0) {
+        newShipState.small_craft_couches = 0;
+        updated = true;
+      }
+    }
+    
+    if (updated) {
+      setShip(newShipState);
+    } else {
+      calculateStats();
+      checkCrewRequirements();
+    }
+    
+  }, [ship.hull_tonnage, ship.jump_drive.drive_letter, ship.maneuver_drive.drive_letter, ship.small_craft_staterooms, ship.small_craft_couches]);
 
   const handleSelectChange = (e) => {
     const { name, value } = e.target;
@@ -914,6 +919,7 @@ function App() {
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(<App />);
+
 
 
 
