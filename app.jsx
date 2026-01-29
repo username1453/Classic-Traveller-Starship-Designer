@@ -14,7 +14,7 @@ const hullCosts = {
 const shipDatabase = {
   "drives": {
     "jump_drives": [
-      { "drive_letter": "None", "mass_tons": 0, "cost_mcr": 0 }
+      { "drive_letter": "None", "mass_tons": 0, "cost_mcr": 0 },
       { "drive_letter": "A", "mass_tons": 10, "cost_mcr": 10 },
       { "drive_letter": "B", "mass_tons": 15, "cost_mcr": 20 },
       { "drive_letter": "C", "mass_tons": 20, "cost_mcr": 30 },
@@ -541,7 +541,7 @@ function App() {
     cargo_tons: ship.cargo_tons,
     isStreamlined: ship.isStreamlined,
     notes: ship.notes,
-    fuel_per_jump: `${(0.1 * ship.hull_tonnage * getDriveRating(ship.hull_tonnage, ship.jump_drive.drive_letter)).toFixed(1)} tons`,
+    fuel_per_jump: fuelPerJump,
     calculated_statistics: {
       hull_cost: stats.hull_cost, 
       allocated_mass: stats.allocated_mass,
@@ -811,6 +811,7 @@ function App() {
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(<App />);
+
 
 
 
