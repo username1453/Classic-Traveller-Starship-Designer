@@ -363,7 +363,9 @@
                 <div class="packages">
                     <h2>Standard Software Packages</h2>
                     <label><input type="checkbox" id="package1"> **Combat Suite**: Predict-1, Target, Launch</label>
-                    <label><input type="checkbox" id="package2"> **Navigation & Jump Suite**: Jump-1, Navigation, Gunner Interact</label>
+                    <label><input type="checkbox" id="package2"> **Navigation & Jump Suite**: Jump-1, Navigation, Maneuver/Evade-1</label>
+                    <label><input type="checkbox" id="package3"> **Military Fighter Suite**: Maneuver/Evade-5, Target, Gunner Interact, Launch, Anti-Missile, Predict-3</label>
+                    <label><input type="checkbox" id="package4"> **Military Battleship Suite**: Maneuver/Evade-5, Target, Gunner Interact, Launch, Anti-Missile, Predict-5, Jump-2, Navigation, ECM, Double Fire, Multi-target-3</label>
                 </div>
                 
                 <div class="json-output-section">
@@ -521,8 +523,14 @@
                 "Predict-1", "Target", "Launch"
             ],
             package2: [
-                "Jump-1", "Navigation", "Gunner Interact"
-            ]
+                "Jump-1", "Navigation", "Maneuver/Evade-1"
+            ],
+            package3: [
+                "Maneuver/Evade-5", "Target", "Gunner Interact", "Launch", "Anti-Missile", "Predict-3"
+            ],
+            package4: [
+                "Maneuver/Evade-5", "Target", "Gunner Interact", "Launch", "Anti-Missile", "Predict-5", "Jump-2", "Navigation", "ECM", "Double Fire", "Multi-target-3"
+            ],
         };
 
         // Get DOM elements
@@ -534,6 +542,8 @@
         const programListEl = document.getElementById('programList');
         const package1Checkbox = document.getElementById('package1');
         const package2Checkbox = document.getElementById('package2');
+        const package3Checkbox = document.getElementById('package3');
+        const package4Checkbox = document.getElementById('package4');
         const jsonInputEl = document.getElementById('jsonInput');
         const loadJsonButton = document.getElementById('loadJsonButton');
         const jsonOutputEl = document.getElementById('jsonOutput');
@@ -587,6 +597,8 @@
             // Reset package checkboxes
             package1Checkbox.checked = false;
             package2Checkbox.checked = false;
+            package3Checkbox.checked = false;
+            package4Checkbox.checked = false;
 
             updateSpaceUsed(); // Initial update of space used and output JSON
         }
@@ -627,6 +639,8 @@
             // Listen for changes on standard package checkboxes
             package1Checkbox.addEventListener('change', handlePackageChange.bind(null, standardPackages.package1, package1Checkbox));
             package2Checkbox.addEventListener('change', handlePackageChange.bind(null, standardPackages.package2, package2Checkbox));
+            package3Checkbox.addEventListener('change', handlePackageChange.bind(null, standardPackages.package3, package2Checkbox));
+            package4Checkbox.addEventListener('change', handlePackageChange.bind(null, standardPackages.package4, package2Checkbox));
 
             // Listen for click on Load JSON button
             loadJsonButton.addEventListener('click', loadShipDataFromJsonInput);
@@ -763,6 +777,7 @@
     </script>
 </body>
 </html>
+
 
 
 
