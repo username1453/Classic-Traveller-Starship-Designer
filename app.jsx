@@ -716,53 +716,61 @@ function App() {
               ))}
             </select>
           </div>
-          <div className="mb-4">
-            <label htmlFor="staterooms" className="block text-sm font-medium text-gray-600 mb-1">Number of Staterooms</label>
-            <input
-              id="staterooms"
-              type="number"
-              name="staterooms"
-              value={ship.staterooms}
-              onChange={handleInputChange}
-              className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-            />
-          </div>
-
-          <div className="mb-4">
-            <label htmlFor="small_craft_staterooms" className="block text-sm font-medium text-gray-600 mb-1">Small Craft Staterooms (2 tons each)</label>
-            <input
-              id="small_craft_staterooms"
-              type="number"
-              name="small_craft_staterooms"
-              value={ship.small_craft_staterooms || 0}
-              onChange={handleInputChange}
-              className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-            />
-          </div>
-          
-          <div className="mb-4">
-            <label htmlFor="small_craft_couches" className="block text-sm font-medium text-gray-600 mb-1">Small Craft Couches (0.5 tons each)</label>
-            <input
-              id="small_craft_couches"
-              type="number"
-              name="small_craft_couches"
-              value={ship.small_craft_couches || 0}
-              onChange={handleInputChange}
-              className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-            />
-          </div>
-          
-          <div className="mb-4">
-            <label htmlFor="low_berths" className="block text-sm font-medium text-gray-600 mb-1">Number of Low Berths</label>
-            <input
-              id="low_berths"
-              type="number"
-              name="low_berths"
-              value={ship.low_berths}
-              onChange={handleInputChange}
-              className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-            />
-          </div>
+         <div className="mb-4">
+          <label htmlFor="staterooms" className="block text-sm font-medium text-gray-600 mb-1">Number of Staterooms</label>
+          <input
+            id="staterooms"
+            type="number"
+            name="staterooms"
+            value={ship.staterooms}
+            onChange={handleInputChange}
+            min="0"
+            step="1"
+            className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+          />
+        </div>
+        
+        <div className="mb-4">
+          <label htmlFor="small_craft_staterooms" className="block text-sm font-medium text-gray-600 mb-1">Small Craft Staterooms (2 tons each)</label>
+          <input
+            id="small_craft_staterooms"
+            type="number"
+            name="small_craft_staterooms"
+            value={ship.small_craft_staterooms || 0}
+            onChange={handleInputChange}
+            min="0"
+            step="1"
+            className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+          />
+        </div>
+        
+        <div className="mb-4">
+          <label htmlFor="small_craft_couches" className="block text-sm font-medium text-gray-600 mb-1">Small Craft Couches (0.5 tons each)</label>
+          <input
+            id="small_craft_couches"
+            type="number"
+            name="small_craft_couches"
+            value={ship.small_craft_couches || 0}
+            onChange={handleInputChange}
+            min="0"
+            step="1"
+            className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+          />
+        </div>
+        
+        <div className="mb-4">
+          <label htmlFor="low_berths" className="block text-sm font-medium text-gray-600 mb-1">Number of Low Berths</label>
+          <input
+            id="low_berths"
+            type="number"
+            name="low_berths"
+            value={ship.low_berths}
+            onChange={handleInputChange}
+            min="0"
+            step="1"
+            className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+          />
+        </div>
           
           <h3 className="text-xl font-semibold text-gray-700 mt-6 mb-2">Armament</h3>
           {ship.armament.map((item, index) => (
@@ -875,6 +883,7 @@ function App() {
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(<App />);
+
 
 
 
