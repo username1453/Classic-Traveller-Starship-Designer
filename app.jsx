@@ -513,6 +513,10 @@ function App() {
     : ship.power_plant.mass_tons; // Power plant operations only
   
   const suggestedFuel = minimumFuel;
+
+  const fuelPerJump = hasJumpDrive 
+    ? (0.1 * ship.hull_tonnage * parseInt(jumpDriveRating))
+    : 0;
   
   // Add a warning if fuel is insufficient
   const fuelWarning = ship.fuel_tons < minimumFuel 
@@ -811,6 +815,7 @@ function App() {
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(<App />);
+
 
 
 
