@@ -401,7 +401,7 @@
     </div>
 
     <!-- jsPDF library for PDF generation -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="PDF_Builder.js"></script>
     <script>
         // This is your initial JSON data. It will be overwritten if you load new data.
         let shipData = {
@@ -740,29 +740,12 @@
             document.body.removeChild(a);
             URL.revokeObjectURL(url); // Clean up the object URL
         }
-
-        // Function to export the current JSON data as a PDF
+        
         function exportPdf() {
-            // Check if jsPDF is available
-            if (typeof window.jspdf === 'undefined' || typeof window.jspdf.jsPDF === 'undefined') {
-                showAlert("PDF export library not loaded. Please try again or ensure internet connectivity.");
-                return;
-            }
-
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            const jsonString = jsonOutputEl.value;
-            const lines = doc.splitTextToSize(jsonString, 180); // Split text to fit page width
-
-            doc.setFontSize(12);
-            doc.text("Ship Program Configuration", 10, 10);
-            doc.setFontSize(10);
-            doc.text(lines, 10, 20); // Start text at Y=20
-
-            doc.save('ship_programs.pdf');
+            // This calls the function inside PDF_Builder.js
+            generateShipPDF(shipData); 
         }
-
-
+        
         // Start the application when the DOM is fully loaded
         document.addEventListener('DOMContentLoaded', () => {
             // Populate the input field with the initial shipData for convenience
@@ -772,3 +755,4 @@
     </script>
 </body>
 </html>
+
