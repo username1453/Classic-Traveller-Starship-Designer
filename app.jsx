@@ -14,6 +14,7 @@ const hullCosts = {
 const shipDatabase = {
   "drives": {
     "jump_drives": [
+      { "drive_letter": "None", "mass_tons": 0, "cost_mcr": 0 }
       { "drive_letter": "A", "mass_tons": 10, "cost_mcr": 10 },
       { "drive_letter": "B", "mass_tons": 15, "cost_mcr": 20 },
       { "drive_letter": "C", "mass_tons": 20, "cost_mcr": 30 },
@@ -204,6 +205,7 @@ function App() {
   const [alertMessage, setAlertMessage] = useState("");
 
   const getDriveRating = (hullTonnage, driveLetter) => {
+    if (driveLetter === "None") return "N/A";
     const potentialEntry = shipDatabase.drive_potential_by_tonnage.find(entry => entry.hull_tons >= hullTonnage);
     if (potentialEntry) {
       return potentialEntry.drive_letter_to_level_mapping[driveLetter] || "N/A";
@@ -212,7 +214,7 @@ function App() {
   };
   
   const getValidDriveLetters = (hullTonnage) => {
-    let validLetters = [];
+    let validLetters = ["None"];
     const potentialEntry = shipDatabase.drive_potential_by_tonnage.find(entry => entry.hull_tons >= hullTonnage);
 
     if (potentialEntry) {
@@ -477,7 +479,7 @@ function App() {
       cargo_tons: ship.cargo_tons,
       isStreamlined: ship.isStreamlined,
       notes: ship.notes,
-      fuel_per_jump: `${(0.1 * ship.hull_tonnage * getDriveRating(ship.hull_tonnage, ship.jump_drive.drive_letter)).toFixed(1)} tons`,
+      fuel_per_jump: fuelPerJump,
       calculated_statistics: {
         hull_cost: stats.hull_cost,
         allocated_mass: stats.allocated_mass,
@@ -504,8 +506,18 @@ function App() {
   };
   
   // Corrected suggestedFuel calculation to use the drive rating
-  const jumpDriveRating = parseInt(getDriveRating(ship.hull_tonnage, ship.jump_drive.drive_letter));
-  const suggestedFuel = ship.jump_drive && !isNaN(jumpDriveRating) ? (0.1 * ship.hull_tonnage * jumpDriveRating) : 0;
+  const jumpDriveRating = getDriveRating(ship.hull_tonnage, ship.jump_drive.drive_letter);
+  const hasJumpDrive = jumpDriveRating !== "N/A";
+  const minimumFuel = hasJumpDrive 
+    ? (0.1 * ship.hull_tonnage * parseInt(jumpDriveRating))  // Jump fuel
+    : ship.power_plant.mass_tons; // Power plant operations only
+  
+  const suggestedFuel = minimumFuel;
+  
+  // Add a warning if fuel is insufficient
+  const fuelWarning = ship.fuel_tons < minimumFuel 
+    ? `Warning: Insufficient fuel! Minimum ${minimumFuel.toFixed(1)} tons required.`
+    : null;
   
   const validDriveLetters = getValidDriveLetters(ship.hull_tonnage);
 
@@ -610,11 +622,19 @@ function App() {
           </div>
 
           <div className="bg-blue-100 p-4 rounded-md mt-4 border border-blue-200">
-              <p className="text-blue-800 text-sm">
-                <strong>Suggested Fuel:</strong> {suggestedFuel.toFixed(0)} tons.
-                <br />
-                <em class="text-gray-600">(Formula: 0.1 x {ship.hull_tonnage} tons x Jump Rating)</em>
-              </p>
+            <p className="text-blue-800 text-sm">
+              <strong>Minimum Fuel Required:</strong> {minimumFuel.toFixed(1)} tons
+              <br />
+              <em className="text-gray-600">
+                {hasJumpDrive 
+                  ? `(Jump Drive: 0.1 x ${ship.hull_tonnage} tons x Jump Rating ${jumpDriveRating})`
+                  : `(Power Plant operations: ${ship.power_plant.mass_tons} tons)`
+                }
+              </em>
+            </p>
+            {fuelWarning && (
+              <p className="text-red-600 font-semibold mt-2">{fuelWarning}</p>
+            )}
           </div>
            <div className="mt-4">
             <label htmlFor="fuel_tons" className="block text-sm font-medium text-gray-600 mb-1">Fuel (tons)</label>
@@ -791,6 +811,7 @@ function App() {
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(<App />);
+
 
 
 
