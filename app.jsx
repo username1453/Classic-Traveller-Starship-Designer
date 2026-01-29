@@ -173,6 +173,8 @@ const { useState, useEffect } = React;
 
 function App() {
   const [ship, setShip] = useState({
+    ship_class: "",
+    ship_type: "",
     hull_tonnage: 100,
     jump_drive: shipDatabase.drives.jump_drives[0],
     maneuver_drive: shipDatabase.drives.maneuver_drives[0],
@@ -514,6 +516,8 @@ function App() {
   const handleExport = () => {
     // Use the EXACT same structure as currentShipJson
     const exportData = {
+      ship_class: ship.ship_class,
+      ship_type: ship.ship_type,
       hull_tonnage: ship.hull_tonnage,
       jump_drive: {
         ...ship.jump_drive,
@@ -582,6 +586,8 @@ function App() {
 
   // Prepare the JSON output for display
   const currentShipJson = JSON.stringify({
+    ship_class: ship.ship_class,
+    ship_type: ship.ship_type,
     hull_tonnage: ship.hull_tonnage,
     jump_drive: {
       ...ship.jump_drive,
@@ -902,6 +908,7 @@ function App() {
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(<App />);
+
 
 
 
