@@ -144,6 +144,7 @@
             align-items: center;
             padding: 10px 0;
             border-bottom: 1px dashed #e0e0e0;
+            position: relative; /* For tooltip positioning */
         }
 
         .program-item:last-child {
@@ -153,6 +154,47 @@
         .program-item span {
             font-weight: 500;
             color: #555;
+        }
+
+        /* Tooltip styling */
+        .program-item label {
+            position: relative;
+        }
+
+        .program-item label .tooltip {
+            visibility: hidden;
+            width: 280px;
+            background-color: #2c3e50;
+            color: #fff;
+            text-align: left;
+            border-radius: 6px;
+            padding: 10px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -140px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.85em;
+            line-height: 1.4;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        .program-item label .tooltip::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #2c3e50 transparent transparent transparent;
+        }
+
+        .program-item label:hover .tooltip {
+            visibility: visible;
+            opacity: 1;
         }
 
         .json-input-section button {
@@ -295,6 +337,10 @@
             .export-buttons-container button {
                 width: 80%; /* Make buttons wider on small screens */
             }
+            .program-item label .tooltip {
+                width: 220px;
+                margin-left: -110px;
+            }
         }
     </style>
 </head>
@@ -428,43 +474,44 @@
             }
         };
 
-        // The list of programs you provided
+        // The list of programs with descriptions
         const allPrograms = [
-            { space: 1, mcr: 2.0, title: "Predict-1" },
-            { space: 2, mcr: 4.0, title: "Predict-2" },
-            { space: 1, mcr: 6.0, title: "Predict-3" },
-            { space: 3, mcr: 8.0, title: "Predict-4" },
-            { space: 2, mcr: 10.0, title: "Predict-5" },
-            { space: 1, mcr: 1.0, title: "Gunner Interact" },
-            { space: 1, mcr: 1.0, title: "Target" },
-            { space: 1, mcr: 0.5, title: "Select-1" },
-            { space: 2, mcr: 0.8, title: "Select-2" },
-            { space: 1, mcr: 1.0, title: "Select-3" },
-            { space: 1, mcr: 2.0, title: "Multi-target-2" },
-            { space: 2, mcr: 2.0, title: "Multi-target-3" },
-            { space: 4, mcr: 3.0, title: "Multi-target-4" },
-            { space: 1, mcr: 2.0, title: "Launch" },
-            { space: 1, mcr: 4.0, title: "Double Fire" },
-            { space: 1, mcr: 1.0, title: "Maneuver/Evade-1" },
-            { space: 2, mcr: 2.0, title: "Maneuver/Evade-2" },
-            { space: 3, mcr: 3.0, title: "Maneuver/Evade-3" },
-            { space: 4, mcr: 4.0, title: "Maneuver/Evade-4" },
-            { space: 2, mcr: 5.0, title: "Maneuver/Evade-5" },
-            { space: 3, mcr: 6.0, title: "Maneuver/Evade-6" },
-            { space: 1, mcr: 0.5, title: "Auto/Evade" },
-            { space: 1, mcr: 0.5, title: "Return Fire" },
-            { space: 1, mcr: 1.0, title: "Anti-Missile" },
-            { space: 2, mcr: 1.0, title: "ECM" },
-            { space: 1, mcr: 0.1, title: "Maneuver" },
-            { space: 1, mcr: 0.2, title: "Jump-1" },
-            { space: 2, mcr: 0.3, title: "Jump-2" },
-            { space: 3, mcr: 0.4, title: "Jump-3" },
-            { space: 4, mcr: 0.5, title: "Jump-4" },
-            { space: 5, mcr: 0.6, title: "Jump-5" },
-            { space: 6, mcr: 0.7, title: "Jump-6" },
-            { space: 1, mcr: 0.1, title: "Navigation" },
-            { space: 2, mcr: 0.1, title: "Generate" },
-            { space: 1, mcr: 0.1, title: "Anti-Hijack" }
+            { space: 1, mcr: 2.0, title: "Predict-1", description: "+1 on to hit throw" },
+            { space: 2, mcr: 4.0, title: "Predict-2", description: "+2 on to hit throw" },
+            { space: 1, mcr: 6.0, title: "Predict-3", description: "+2 on to hit throw" },
+            { space: 3, mcr: 8.0, title: "Predict-4", description: "+3 on to hit throw" },
+            { space: 2, mcr: 10.0, title: "Predict-5", description: "+3 on to hit throw" },
+            { space: 1, mcr: 1.0, title: "Gunner Interact", description: "Adds gunner expertise" },
+            { space: 1, mcr: 1.0, title: "Target", description: "Required in order to fire turrets" },
+            { space: 1, mcr: 0.5, title: "Select-1", description: "Allows target selection but -2 to hit" },
+            { space: 2, mcr: 0.8, title: "Select-2", description: "Allows as select-1 but -1 to hit" },
+            { space: 1, mcr: 1.0, title: "Select-3", description: "Allows as select-1 but no hit penalty" },
+            { space: 1, mcr: 2.0, title: "Multi-target-2", description: "Allows engagement of 2 targets" },
+            { space: 2, mcr: 2.0, title: "Multi-target-3", description: "Allows engagement of 3 targets" },
+            { space: 4, mcr: 3.0, title: "Multi-target-4", description: "Allows engagement of 4 targets" },
+            { space: 1, mcr: 2.0, title: "Launch", description: "Required for launch of missiles and sand" },
+            { space: 1, mcr: 4.0, title: "Double Fire", description: "Allows firing twice" },
+            { space: 1, mcr: 1.0, title: "Maneuver/Evade-1", description: "-1/4 pilot skill to attacks against and allows maneuvering" },
+            { space: 2, mcr: 2.0, title: "Maneuver/Evade-2", description: "-1/2 pilot skill to attacks against and allows maneuvering" },
+            { space: 3, mcr: 3.0, title: "Maneuver/Evade-3", description: "-3/4 pilot skill to attacks against and allows maneuvering" },
+            { space: 4, mcr: 4.0, title: "Maneuver/Evade-4", description: "- pilot skill to attacks against and allows maneuvering" },
+            { space: 2, mcr: 5.0, title: "Maneuver/Evade-5", description: "- pilot skill to attacks against and allows maneuvering" },
+            { space: 3, mcr: 6.0, title: "Maneuver/Evade-6", description: "-3 to attacks against and allows maneuvering" },
+            { space: 1, mcr: 1.0, title: "Auto/Evade", description: "-1 to attacks against." },
+            { space: 1, mcr: 0.5, title: "Return Fire", description: "Automatically response if attacked" },
+            { space: 1, mcr: 1.0, title: "Anti-Missile", description: "Allows laser anti-missile fire" },
+            { space: 2, mcr: 1.0, title: "ECM", description: "May explode incoming missiles" },
+            { space: 1, mcr: 0.1, title: "Maneuver", description: "Allows use of maneuver drive" },
+            { space: 1, mcr: 0.2, title: "Jump-1", description: "Allows use of jump-1" },
+            { space: 2, mcr: 0.3, title: "Jump-2", description: "Allows use of jump-1" },
+            { space: 3, mcr: 0.4, title: "Jump-3", description: "Allows use of jump-1" },
+            { space: 4, mcr: 0.5, title: "Jump-4", description: "Allows use of jump-1" },
+            { space: 5, mcr: 0.6, title: "Jump-5", description: "Allows use of jump-1" },
+            { space: 6, mcr: 0.7, title: "Jump-6", description: "Allows use of jump-1" },
+            { space: 1, mcr: 0.1, title: "Navigation", description: "Controls use of jump drive and arrival at destination" },
+            { space: 2, mcr: 0.1, title: "Generate", description: "Allows navigator to produce flight plans for jump" },
+            { space: 1, mcr: 0.1, title: "Anti-Hijack", description: "Helps prevent hijacking" },
+            { space: 1, mcr: 0.3, title: "Library", description: "Contains an encyclopedia of information" }
         ];
 
         // Define the standard packages with program titles
@@ -543,7 +590,7 @@
             updateSpaceUsed(); // Initial update of space used and output JSON
         }
 
-        // Render the list of individual programs with checkboxes
+        // Render the list of individual programs with checkboxes and tooltips
         function renderProgramList() {
             programListEl.innerHTML = ''; // Clear existing list
             programCheckboxes = {}; // Clear previous references
@@ -556,6 +603,7 @@
                     <label>
                         <input type="checkbox" id="${programId}" data-space="${program.space}" data-title="${program.title}">
                         ${program.title}
+                        <span class="tooltip">${program.description}</span>
                     </label>
                     <span>Space: ${program.space}</span>
                 `;
@@ -724,4 +772,3 @@
     </script>
 </body>
 </html>
-
