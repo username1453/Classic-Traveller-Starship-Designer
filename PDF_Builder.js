@@ -53,7 +53,13 @@ const PDFGenerator = (function() {
          * @param {Array} masterProgramList - Array of all possible programs for lookup
          */
         generate: function(data, masterProgramList) {
-            const { jsPDF } = window.jspdf;
+            // This checks both common locations for the library to ensure it works
+            const { jsPDF } = window.jspdf || window.jspdf.jsPDF || window;
+            
+            if (!jsPDF) {
+                console.error("jsPDF library not found on window object.");
+                return;
+            }
             const doc = new jsPDF();
             let yPos = 20;
 
