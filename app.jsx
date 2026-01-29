@@ -439,6 +439,11 @@ function App() {
     
   }, [ship.hull_tonnage]);
 
+  useEffect(() => {
+    calculateStats();
+    checkCrewRequirements();
+  }, [ship]);
+
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     if (type === "checkbox") {
@@ -905,6 +910,7 @@ function App() {
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(<App />);
+
 
 
 
