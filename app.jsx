@@ -322,60 +322,79 @@ function App() {
   const checkCrewRequirements = () => {
     let requiredCrew = [];
     let msgs = [];
-
-    if (ship.hull_tonnage >= crewRequirements.pilot.tonnage) {
-      requiredCrew.push("Pilot");
-    }
-
-    if (ship.hull_tonnage >= crewRequirements.navigator.tonnage) {
-      requiredCrew.push("Navigator");
-    }
-
-    if (ship.hull_tonnage >= 200) {
-      const driveTons = (ship.jump_drive?.mass_tons || 0) +
-                       (ship.maneuver_drive?.mass_tons || 0);
-      const numEngineers = Math.ceil(driveTons / crewRequirements.engineer.tonnage);
-      if (numEngineers > 0) {
-        requiredCrew.push(...Array(numEngineers).fill("Engineer"));
+  
+    // Small craft (< 100 tons) have different crew requirements
+    if (ship.hull_tonnage < 100) {
+      requiredCrew.push("Small Craft Pilot");
+      
+      // Small craft pilot can operate the first weapon
+      if (ship.armament.length > 1) {
+        // Additional gunners needed for weapons beyond the first
+        for (let i = 1; i < ship.armament.length; i++) {
+          requiredCrew.push("Gunner");
+        }
       }
-    } else if (ship.hull_tonnage >= crewRequirements.engineer.tonnage) {
-      const driveTons = (ship.jump_drive?.mass_tons || 0) +
-                       (ship.maneuver_drive?.mass_tons || 0) +
-                       (ship.power_plant?.mass_tons || 0);
-      const numEngineers = Math.ceil(driveTons / crewRequirements.engineer.tonnage);
-      if (numEngineers > 0) {
-        requiredCrew.push(...Array(numEngineers).fill("Engineer"));
+    } else {
+      // Standard ship crew requirements (100+ tons)
+      if (ship.hull_tonnage >= crewRequirements.pilot.tonnage) {
+        requiredCrew.push("Pilot");
       }
-    }
-
-    if (ship.hull_tonnage >= crewRequirements.medic.tonnage) {
-      requiredCrew.push("Medic");
-    }
-
-    if (ship.armament.length > 0) {
-      ship.armament.forEach(() => {
-        requiredCrew.push("Gunner");
-      });
-    }
-
-    if (ship.hull_tonnage > 1000) {
+  
+      if (ship.hull_tonnage >= crewRequirements.navigator.tonnage) {
+        requiredCrew.push("Navigator");
+      }
+  
+      if (ship.hull_tonnage >= 200) {
+        const driveTons = (ship.jump_drive?.mass_tons || 0) +
+                         (ship.maneuver_drive?.mass_tons || 0);
+        const numEngineers = Math.ceil(driveTons / crewRequirements.engineer.tonnage);
+        if (numEngineers > 0) {
+          requiredCrew.push(...Array(numEngineers).fill("Engineer"));
+        }
+      } else if (ship.hull_tonnage >= crewRequirements.engineer.tonnage) {
+        const driveTons = (ship.jump_drive?.mass_tons || 0) +
+                         (ship.maneuver_drive?.mass_tons || 0) +
+                         (ship.power_plant?.mass_tons || 0);
+        const numEngineers = Math.ceil(driveTons / crewRequirements.engineer.tonnage);
+        if (numEngineers > 0) {
+          requiredCrew.push(...Array(numEngineers).fill("Engineer"));
+        }
+      }
+  
+      if (ship.hull_tonnage >= crewRequirements.medic.tonnage) {
+        requiredCrew.push("Medic");
+      }
+  
+      if (ship.armament.length > 0) {
+        ship.armament.forEach(() => {
+          requiredCrew.push("Gunner");
+        });
+      }
+  
+      if (ship.hull_tonnage > 1000) {
         requiredCrew.push("Commanding Officer (Captain)");
         requiredCrew.push("Executive Officer");
         requiredCrew.push("Administrative Personnel", "Administrative Personnel", "Administrative Personnel");
-
+  
         const minCrewRequired = Math.ceil(ship.hull_tonnage / 1000) * 10;
         const crewShortfall = minCrewRequired - requiredCrew.length;
         if (crewShortfall > 0) {
-            requiredCrew.push(...Array(crewShortfall).fill("Crewman"));
+          requiredCrew.push(...Array(crewShortfall).fill("Crewman"));
         }
+      }
     }
-
-    if (requiredCrew.length > ship.staterooms * 2) {
-      msgs.push(`Warning: Insufficient staterooms for the required crew. Crew needs: ${requiredCrew.length}, Staterooms available: ${ship.staterooms * 2}`);
-    } else if (requiredCrew.length > ship.staterooms) {
+  
+    // Accommodation checks
+    const totalAccommodation = (ship.staterooms * 2) + 
+                              (ship.small_craft_staterooms || 0) + 
+                              (ship.small_craft_couches || 0);
+  
+    if (requiredCrew.length > totalAccommodation) {
+      msgs.push(`Warning: Insufficient accommodations for the required crew. Crew needs: ${requiredCrew.length}, Accommodations available: ${totalAccommodation}`);
+    } else if (ship.hull_tonnage >= 100 && requiredCrew.length > ship.staterooms * 2) {
       msgs.push("Note: Crew will need to be double-bunked in some staterooms.");
     }
-
+  
     setCrew(requiredCrew);
     setMessages(msgs);
   };
@@ -883,6 +902,7 @@ function App() {
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(<App />);
+
 
 
 
