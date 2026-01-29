@@ -719,31 +719,18 @@
                     // Calculate allocated mass (sum of all components)
                     const armamentMass = currentShipData.armament.length * staticComponentCosts.hardpoint_mass_per_unit;
 
-                    let componentsMassExcludingCargo = 0;
+                    // Start with user's original cargo value
+                    let availableCargoSpace = originalCargoTons;
                     
-                    // Only add masses if they exist (user-provided)
-                    if (currentShipData.jump_drive?.mass_tons) componentsMassExcludingCargo += currentShipData.jump_drive.mass_tons;
-                    if (currentShipData.maneuver_drive?.mass_tons) componentsMassExcludingCargo += currentShipData.maneuver_drive.mass_tons;
-                    if (currentShipData.power_plant?.mass_tons) componentsMassExcludingCargo += currentShipData.power_plant.mass_tons;
-                    if (currentShipData.computer?.tons) componentsMassExcludingCargo += currentShipData.computer.tons;
+                    // Only subtract armor mass
+                    availableCargoSpace -= armorMass;
                     
-                    // Add bridge mass if it exists in calculated_statistics, otherwise use default
-                    const bridgeMass = currentShipData.calculated_statistics?.bridge_mass || staticComponentCosts.bridge_mass;
-                    componentsMassExcludingCargo += parseFloat(bridgeMass);
-                    
-                    componentsMassExcludingCargo += currentShipData.staterooms * staticComponentCosts.stateroom_mass;
-                    componentsMassExcludingCargo += currentShipData.low_berths * 1;
-                    componentsMassExcludingCargo += currentShipData.fuel_tons;
-                    componentsMassExcludingCargo += armamentMass;
-                    componentsMassExcludingCargo += armorMass;
-                    
+                    // Only subtract additional rooms
                     if (currentShipData.additional_rooms && currentShipData.additional_rooms.length > 0) {
                         currentShipData.additional_rooms.forEach(room => {
-                            componentsMassExcludingCargo += room.tonnage;
+                            availableCargoSpace -= room.tonnage;
                         });
                     }
-
-                    let availableCargoSpace = hullTonnage - componentsMassExcludingCargo;
 
                     let finalCalculatedCargoTons;
                     let finalAllocatedMass;
@@ -751,7 +738,7 @@
                     if (availableCargoSpace < 0) {
                         finalCalculatedCargoTons = 0;
                         finalAllocatedMass = hullTonnage;
-                        displayMessage(`Critical Warning: Ship components (${componentsMassExcludingCargo.toFixed(2)} tons) exceed hull tonnage (${hullTonnage} tons). No cargo space available.`, 'error');
+                        displayMessage(`Critical Warning: Armor and additional rooms exceed available cargo space. No cargo space remaining.`, 'error');
                     } else {
                         finalCalculatedCargoTons = availableCargoSpace;
                         finalAllocatedMass = hullTonnage;
@@ -810,4 +797,5 @@
     </script>
 </body>
 </html>
+
 
