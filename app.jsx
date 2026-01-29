@@ -418,10 +418,7 @@ function App() {
     
     if (updated) {
       setShip(newShipState);
-    } else {
-      calculateStats();
-      checkCrewRequirements();
-    }
+    } 
     
   }, [ship.hull_tonnage]);
 
@@ -908,6 +905,7 @@ function App() {
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(<App />);
+
 
 
 
