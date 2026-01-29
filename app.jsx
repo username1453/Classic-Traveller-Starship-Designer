@@ -179,6 +179,8 @@ function App() {
     power_plant: shipDatabase.drives.power_plants[0],
     computer: shipDatabase.computers[0],
     staterooms: 2,
+    small_craft_staterooms: 0,  
+    small_craft_couches: 0,
     low_berths: 0, // Initialize low berths
     armament: [],
     fuel_tons: 20,
@@ -228,8 +230,8 @@ function App() {
   const calculateStats = () => {
     // Fixed hull cost calculation
     const baseHullCost = hullCosts[ship.hull_tonnage] || (ship.hull_tonnage * 0.1);
-    const bridgeMass = Math.max(ship.hull_tonnage * 0.02, 20);
-    const bridgeCostMcr = (ship.hull_tonnage / 100) * 0.5;
+    const bridgeMass = ship.hull_tonnage < 100 ? 0 : Math.max(ship.hull_tonnage * 0.02, 20);
+    const bridgeCostMcr = ship.hull_tonnage < 100 ? 0 : (ship.hull_tonnage / 100) * 0.5;
   
     let allocatedMass = bridgeMass;
     let totalComponentCostMcr = baseHullCost + bridgeCostMcr;
@@ -256,6 +258,18 @@ function App() {
     if (stateroomDetails) {
       allocatedMass += stateroomDetails.mass_tons * ship.staterooms;
       totalComponentCostMcr += stateroomDetails.cost_mcr * ship.staterooms;
+    }
+
+    const smallCraftStateroomDetails = shipDatabase.fittings.find(f => f.item === "Small Craft Stateroom");
+    if (smallCraftStateroomDetails && ship.small_craft_staterooms) {
+      allocatedMass += smallCraftStateroomDetails.mass_tons * ship.small_craft_staterooms;
+      totalComponentCostMcr += smallCraftStateroomDetails.cost_mcr * ship.small_craft_staterooms;
+    }
+    
+    const smallCraftCouchDetails = shipDatabase.fittings.find(f => f.item === "Small Craft Couch");
+    if (smallCraftCouchDetails && ship.small_craft_couches) {
+      allocatedMass += smallCraftCouchDetails.mass_tons * ship.small_craft_couches;
+      totalComponentCostMcr += smallCraftCouchDetails.cost_mcr * ship.small_craft_couches;
     }
   
     // Calculate Low Berth mass and cost
@@ -399,6 +413,8 @@ function App() {
     ship.power_plant,
     ship.computer,
     ship.staterooms,
+    ship.small_craft_staterooms,
+    ship.small_craft_couches, 
     ship.low_berths, // Add low_berths to dependencies
     ship.armament,
     ship.fuel_tons,
@@ -443,7 +459,7 @@ function App() {
     } else {
       setShip(prev => ({
         ...prev,
-        armament: [...prev.armament, { mount: "Single Turret", weapon: "Pulse Laser" }]
+        armament: [...prev.armament, { mount: "Single Turret", weapon: "Missile Rack" }]
       }));
     }
   };
@@ -491,6 +507,8 @@ function App() {
       power_plant: ship.power_plant,
       computer: ship.computer,
       staterooms: ship.staterooms,
+      small_craft_staterooms: ship.small_craft_staterooms,
+      small_craft_couches: ship.small_craft_couches,
       low_berths: ship.low_berths,
       armament: ship.armament,
       fuel_tons: ship.fuel_tons,
@@ -711,6 +729,30 @@ function App() {
           </div>
 
           <div className="mb-4">
+            <label htmlFor="small_craft_staterooms" className="block text-sm font-medium text-gray-600 mb-1">Small Craft Staterooms (2 tons each)</label>
+            <input
+              id="small_craft_staterooms"
+              type="number"
+              name="small_craft_staterooms"
+              value={ship.small_craft_staterooms || 0}
+              onChange={handleInputChange}
+              className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+            />
+          </div>
+          
+          <div className="mb-4">
+            <label htmlFor="small_craft_couches" className="block text-sm font-medium text-gray-600 mb-1">Small Craft Couches (0.5 tons each)</label>
+            <input
+              id="small_craft_couches"
+              type="number"
+              name="small_craft_couches"
+              value={ship.small_craft_couches || 0}
+              onChange={handleInputChange}
+              className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+            />
+          </div>
+          
+          <div className="mb-4">
             <label htmlFor="low_berths" className="block text-sm font-medium text-gray-600 mb-1">Number of Low Berths</label>
             <input
               id="low_berths"
@@ -833,6 +875,7 @@ function App() {
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(<App />);
+
 
 
 
