@@ -742,8 +742,15 @@
         }
         
         function exportPdf() {
-            // This calls the function inside PDF_Builder.js
-            generateShipPDF(shipData); 
+            // Check if the module actually loaded to prevent errors
+            if (typeof PDFGenerator === 'undefined') {
+                showAlert("PDF Generator module not found. Check if PDF_Builder.js is loaded.");
+                return;
+            }
+        
+            // This calls the 'generate' function inside your PDFGenerator module.
+            // It needs two things: your ship data, and the list of all program descriptions.
+            PDFGenerator.generate(shipData, allPrograms);
         }
         
         // Start the application when the DOM is fully loaded
@@ -755,4 +762,5 @@
     </script>
 </body>
 </html>
+
 
