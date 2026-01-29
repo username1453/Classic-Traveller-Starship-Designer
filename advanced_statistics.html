@@ -64,6 +64,7 @@
                                 <th class="text-left py-2 px-2">Grade</th>
                                 <th class="text-right py-2 px-2">Points</th>
                                 <th class="text-right py-2 px-2">Mass (t)</th>
+                                <th class="text-right py-2 px-2">Small (t)</th>
                                 <th class="text-right py-2 px-2">Cost (MCr)</th>
                             </tr>
                         </thead>
@@ -74,6 +75,9 @@
                     <div class="mt-4 p-3 bg-blue-50 rounded-md border border-blue-200">
                         <p class="text-xs text-blue-800">
                             <strong>Note:</strong> Default armor is free. Only upgrades above default have cost/mass.
+                        </p>
+                        <p class="text-xs text-blue-800 mt-2">
+                            <strong>Small ships:</strong> Ships under 100 tons use the "Small (t)" mass column.
                         </p>
                         <p class="text-xs text-blue-800 mt-2">
                             <strong>Military grades:</strong> R-Z are typically not available for civilian purchase.
@@ -234,10 +238,13 @@
                     const row = document.createElement('tr');
                     row.className = armor.military ? 'bg-red-50' : (armor.notes ? 'bg-blue-50' : '');
                     
+                    const smallMassDisplay = armor.mass_small !== undefined ? armor.mass_small : '--';
+                    
                     row.innerHTML = `
                         <td class="py-2 px-2 font-semibold ${armor.military ? 'text-red-700' : ''}">${armor.grade}${armor.notes ? '*' : ''}</td>
                         <td class="py-2 px-2 text-right">${armor.points}</td>
                         <td class="py-2 px-2 text-right">${armor.mass}</td>
+                        <td class="py-2 px-2 text-right">${smallMassDisplay}</td>
                         <td class="py-2 px-2 text-right">${armor.cost}</td>
                     `;
                     
@@ -499,10 +506,39 @@
 
             // Define the lookup tables and rules
             const rules = {
-                mDriveSpeed: (tonnage, driveLetter) => {
-                    const letterMap = { 'A': 1, 'B': 2, 'C': 3, 'D': 4, 'E': 5, 'F': 6 };
-                    const speedValue = letterMap[driveLetter];
-                    return speedValue !== undefined ? speedValue : 0;
+                mDriveSpeed: (tonnage, driveLetter, driveRating) => {
+                    // For large craft (100+ tons), use the drive_rating directly
+                    if (tonnage >= 100) {
+                        return driveRating !== undefined && driveRating !== null ? driveRating : 0;
+                    }
+                    
+                    // Speed table for small craft
+                    const speedTable = {
+                        '10-39': { 'A': 6, 'B': 8, 'C': 10 },
+                        '40-95': { 'A': 4, 'B': 6, 'C': 8 }
+                    };
+                    
+                    // Determine which range the small craft falls into
+                    let range;
+                    let maxSpeed;
+                    if (tonnage >= 10 && tonnage <= 39) {
+                        range = '10-39';
+                        maxSpeed = 10; // Cap at 10G
+                    } else if (tonnage >= 40 && tonnage <= 95) {
+                        range = '40-95';
+                        maxSpeed = 8; // Cap at 8G
+                    } else {
+                        return 0; // Invalid tonnage
+                    }
+                    
+                    // Get speed from table, or cap at max if drive is D or higher
+                    const speedValue = speedTable[range][driveLetter];
+                    if (speedValue !== undefined) {
+                        return speedValue;
+                    } else {
+                        // For drives D, E, F, etc. - cap at max speed for this tonnage range
+                        return maxSpeed;
+                    }
                 },
 
                 aManeuverDM: (tonnage) => {
@@ -567,9 +603,13 @@
                     return ARMOR_DATA.findIndex(a => a.grade === armorLetter);
                 },
 
-                armorStatsBaseValue: (armorLetter) => {
+                armorStatsBaseValue: (armorLetter, isSmallShip) => {
                     const armor = ARMOR_DATA.find(a => a.grade === armorLetter);
-                    return armor ? { cost_mcr: armor.cost, mass_tons: armor.mass } : { cost_mcr: 0, mass_tons: 0 };
+                    if (!armor) return { cost_mcr: 0, mass_tons: 0 };
+                    
+                    // Use different mass for small ships
+                    const mass = isSmallShip ? (armor.mass_small !== undefined ? armor.mass_small : armor.mass) : armor.mass;
+                    return { cost_mcr: armor.cost, mass_tons: mass };
                 }
             };
             
@@ -584,6 +624,7 @@
                 try {
                     currentShipData = JSON.parse(jsonInput.value);
                     const hullTonnage = currentShipData.hull_tonnage;
+                    const isSmallShip = hullTonnage < 100;
 
                     if (!currentShipData.bridge_skills) currentShipData.bridge_skills = [];
                     if (!currentShipData.gunner_skills) currentShipData.gunner_skills = [];
@@ -635,7 +676,7 @@
                     const derivedStats = {
                         'aManeuverDM': rules.aManeuverDM(hullTonnage),
                         'turnRadius': rules.turnRadius(hullTonnage, currentShipData.maneuver_drive.drive_letter),
-                        'speedHexes': rules.mDriveSpeed(hullTonnage, currentShipData.maneuver_drive.drive_letter),
+                        'speedHexes': rules.mDriveSpeed(hullTonnage, currentShipData.maneuver_drive.drive_letter, currentShipData.maneuver_drive.drive_rating),
                         'jump_drive_rating': currentShipData.jump_drive.drive_rating,
                         'maneuver_drive_rating': currentShipData.maneuver_drive.drive_rating,
                     };
@@ -658,8 +699,8 @@
                         const defaultArmorIndex = rules.getArmorGradeIndex(defaultArmorLetter);
 
                         if (chosenArmorIndex > defaultArmorIndex) {
-                             const chosenArmorBaseStats = rules.armorStatsBaseValue(armorLetter);
-                             const defaultArmorBaseStats = rules.armorStatsBaseValue(defaultArmorLetter); 
+                             const chosenArmorBaseStats = rules.armorStatsBaseValue(armorLetter, isSmallShip);
+                             const defaultArmorBaseStats = rules.armorStatsBaseValue(defaultArmorLetter, isSmallShip); 
 
                              armorMass = chosenArmorBaseStats.mass_tons - defaultArmorBaseStats.mass_tons;
                              armorCost = chosenArmorBaseStats.cost_mcr;
@@ -731,7 +772,8 @@
                         armor_cost: armorCost,
                         armament_mass: armamentMass,
                         allocated_mass: parseFloat(finalAllocatedMass.toFixed(2)),
-                        calculated_cargo_tons: parseFloat(finalCalculatedCargoTons.toFixed(2))
+                        calculated_cargo_tons: parseFloat(finalCalculatedCargoTons.toFixed(2)),
+                        is_small_ship: isSmallShip
                     };
 
                     jsonOutput.value = JSON.stringify(currentShipData, null, 2);
