@@ -413,6 +413,12 @@ function App() {
       newShipState.maneuver_drive = shipDatabase.drives.maneuver_drives.find(d => d.drive_letter === validDriveLetters[0]);
       updated = true;
     }
+
+    if (ship.hull_tonnage >= 100 && (ship.small_craft_staterooms > 0 || ship.small_craft_couches > 0)) {
+      newShipState.small_craft_staterooms = 0;
+      newShipState.small_craft_couches = 0;
+      updated = true;
+    }
     
     if (updated) {
       setShip(newShipState);
@@ -750,7 +756,9 @@ function App() {
         </div>
         
         <div className="mb-4">
-          <label htmlFor="small_craft_staterooms" className="block text-sm font-medium text-gray-600 mb-1">Small Craft Staterooms (2 tons each)</label>
+          <label htmlFor="small_craft_staterooms" className="block text-sm font-medium text-gray-600 mb-1">
+            Small Craft Staterooms (2 tons each) {ship.hull_tonnage >= 100 && <span className="text-red-600">- Not available for ships ≥100 tons</span>}
+          </label>
           <input
             id="small_craft_staterooms"
             type="number"
@@ -759,12 +767,15 @@ function App() {
             onChange={handleInputChange}
             min="0"
             step="1"
-            className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+            disabled={ship.hull_tonnage >= 100}
+            className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 disabled:bg-gray-100 disabled:cursor-not-allowed"
           />
         </div>
         
         <div className="mb-4">
-          <label htmlFor="small_craft_couches" className="block text-sm font-medium text-gray-600 mb-1">Small Craft Couches (0.5 tons each)</label>
+          <label htmlFor="small_craft_couches" className="block text-sm font-medium text-gray-600 mb-1">
+            Small Craft Couches (0.5 tons each) {ship.hull_tonnage >= 100 && <span className="text-red-600">- Not available for ships ≥100 tons</span>}
+          </label>
           <input
             id="small_craft_couches"
             type="number"
@@ -773,7 +784,8 @@ function App() {
             onChange={handleInputChange}
             min="0"
             step="1"
-            className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+            disabled={ship.hull_tonnage >= 100}
+            className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 disabled:bg-gray-100 disabled:cursor-not-allowed"
           />
         </div>
         
@@ -902,6 +914,7 @@ function App() {
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(<App />);
+
 
 
 
