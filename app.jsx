@@ -405,15 +405,32 @@ function App() {
     const validDriveLetters = getValidDriveLetters(ship.hull_tonnage);
     const newShipState = { ...ship };
     let updated = false;
-
+  
+    // For jump drive, "None" is valid
     if (!validDriveLetters.includes(newShipState.jump_drive.drive_letter)) {
-      newShipState.jump_drive = shipDatabase.drives.jump_drives.find(d => d.drive_letter === validDriveLetters[0]);
-      updated = true;
+      const newDrive = shipDatabase.drives.jump_drives.find(d => validDriveLetters.includes(d.drive_letter));
+      if (newDrive) {
+        newShipState.jump_drive = newDrive;
+        updated = true;
+      }
     }
-
+  
+    // For maneuver drive, skip "None" and find first real drive
     if (!validDriveLetters.includes(newShipState.maneuver_drive.drive_letter)) {
-      newShipState.maneuver_drive = shipDatabase.drives.maneuver_drives.find(d => d.drive_letter === validDriveLetters[0]);
-      updated = true;
+      const newDrive = shipDatabase.drives.maneuver_drives.find(d => validDriveLetters.includes(d.drive_letter));
+      if (newDrive) {
+        newShipState.maneuver_drive = newDrive;
+        updated = true;
+      }
+    }
+    
+    // For power plant, skip "None" and find first real drive
+    if (!validDriveLetters.includes(newShipState.power_plant.drive_letter)) {
+      const newDrive = shipDatabase.drives.power_plants.find(d => validDriveLetters.includes(d.drive_letter));
+      if (newDrive) {
+        newShipState.power_plant = newDrive;
+        updated = true;
+      }
     }
     
     if (updated) {
@@ -421,23 +438,6 @@ function App() {
     } 
     
   }, [ship.hull_tonnage]);
-
-  useEffect(() => {
-    calculateStats();
-    checkCrewRequirements();
-  }, [
-    ship.jump_drive,
-    ship.maneuver_drive,
-    ship.power_plant,
-    ship.computer,
-    ship.staterooms,
-    ship.small_craft_staterooms,
-    ship.small_craft_couches, 
-    ship.low_berths, // Add low_berths to dependencies
-    ship.armament,
-    ship.fuel_tons,
-    ship.isStreamlined
-  ]);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -905,6 +905,7 @@ function App() {
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(<App />);
+
 
 
 
