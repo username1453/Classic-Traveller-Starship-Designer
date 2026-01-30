@@ -288,7 +288,7 @@ function App() {
       const weapon = shipDatabase.armament.weapons.find(w => w.item === item.weapon);
       
       if (mount && weapon) {
-        allocatedMass += (mount.mass_tons || 0) + 1; // Hardpoint + fire control
+        allocatedMass += 1; // Each hardpoint/turret is 1 ton total
         totalComponentCostMcr += mount.cost_mcr;
         
         const weaponCount = getWeaponCount(item.mount);
@@ -442,7 +442,20 @@ function App() {
   useEffect(() => {
     calculateStats();
     checkCrewRequirements();
-  }, [ship]);
+  }, [
+    ship.hull_tonnage,
+    ship.jump_drive,
+    ship.maneuver_drive,
+    ship.power_plant,
+    ship.computer,
+    ship.staterooms,
+    ship.small_craft_staterooms,
+    ship.small_craft_couches,
+    ship.low_berths,
+    ship.armament,
+    ship.fuel_tons,
+    ship.isStreamlined
+  ]);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -603,6 +616,8 @@ function App() {
     computer: ship.computer,
     staterooms: ship.staterooms,
     low_berths: ship.low_berths,
+    small_craft_staterooms: ship.small_craft_staterooms,
+    small_craft_couches: ship.small_craft_couches,
     armament: ship.armament,
     fuel_tons: ship.fuel_tons,
     cargo_tons: ship.cargo_tons,
@@ -910,6 +925,7 @@ function App() {
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(<App />);
+
 
 
 
