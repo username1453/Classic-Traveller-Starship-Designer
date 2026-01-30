@@ -341,6 +341,13 @@
             };
 
             const showModal = (modalElement, missingFields = []) => {
+                    // Special handling for add-room-modal (it doesn't use #modal-inputs)
+                if (modalElement.id === 'add-room-modal') {
+                    modalElement.classList.remove('hidden');
+                    modalElement.style.zIndex = '1000';
+                    return; // Exit early - this modal doesn't need dynamic inputs
+                }
+                
                 const modalInputsDiv = modalElement.querySelector('#modal-inputs');
                 if (!modalInputsDiv) {
                     console.error('Modal input container not found for:', modalElement.id);
@@ -797,5 +804,6 @@
     </script>
 </body>
 </html>
+
 
 
